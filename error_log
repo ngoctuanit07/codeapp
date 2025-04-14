@@ -1,0 +1,4 @@
+[11-Dec-2023 23:25:36 Asia/Ho_Chi_Minh] PHP Fatal error:  Uncaught Error: Class "ZipArchive" not found in /home/darkwebw/deepweb.com.vn/update.php:37
+Stack trace:
+#0 {main}
+  thrown in /home/darkwebw/deepweb.com.vn/update.php on line 37
