@@ -87,9 +87,6 @@ if (isset($_POST['submit'])) {
             'createdate'    => gettime(),
             'action'        => "Create Email Marketing Campaign (".check_string($_POST['name']).")"
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Tạo chiến dịch email ('.check_string($_POST['name']).').';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Successful !")){location.href = "'.base_url_admin('email-campaigns').'";}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Failure !")){window.history.back().location.reload();}</script>');

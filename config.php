@@ -3,7 +3,7 @@
 
 $config = [
     'project'       => 'SHOPCLONE6',
-    'version'       => '7.7.0',
+    'version'       => '6.7.5',
     'max_time_load' => 4,
     'limit_block_login_client'  => 10,
     'limit_block_ip_login_client'  => 5
@@ -14,9 +14,7 @@ $config_listbank_auto = [
     'MBBank'        => 'Ngân hàng TMCP Quân đội MBBank',
     'ACB'           => 'Ngân hàng TMCP Á Châu ACB',
     'Techcombank'   => 'Ngân hàng TMCP Kỹ thương Việt Nam Techcombank',
-    'TPBank'        => 'Ngân hàng TMCP Tiên Phong TPBank',
-    'VietinBank' => 'Ngân hàng TMCP Công thương Việt Nam VietinBank',
-    'BIDV' => 'Ngân hàng TMCP Đầu tư và Phát triển Việt Nam BIDV'
+    'TPBank'        => 'Ngân hàng TMCP Tiên Phong TPBank'
 ];
 
 $config_listbank = [
@@ -104,7 +102,10 @@ $config_listbank = [
 ];
  
 $ip_server_black = [
-  
+    '88.198.22.18', // myoglog.com
+    '103.153.64.233',   // shopfb.io.vn
+    '103.200.24.28', // shophuyga.com
+    '103.74.123.2' // bmvia.net
 ];
 
 $domain_black = [
@@ -120,6 +121,7 @@ $domain_black = [
     'rdsieuvip.com',
     'sellviaxu.com',
     'autordff.com',
+    'huyclone.com',
     'clonengoaiviet.com',
     'dichvuthanhtoan.site',
     'trumrandom.com',
@@ -236,9 +238,7 @@ $domain_black = [
     'robloxrenhat.com',
     'random24h.com',
     'shopadsfb24h.com',
-    'haidangfb.com',
-    'clonevns.site',
-    'hasaki.io.vn'
+    'haidangfb.com'
 ];
 
  

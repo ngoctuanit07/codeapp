@@ -105,7 +105,7 @@
                             'update_time'   => time()
                         ], " `id` = '".$row['id']."' ");
                         if ($isUpdate) {
-                            $isCong = $user->AddCredits($row['user_id'], $row['amount'], "Thanh toán hoá đơn nạp tiền #".$row['trans_id'], 'INVOICE_'.$row['trans_id']);
+                            $isCong = $user->AddCredits($row['user_id'], $row['amount'], "Thanh toán hoá đơn nạp tiền #".$row['trans_id']);
                             if (!$isCong) {
                                 $CMSNT->update("invoices", [
                                 'status'  => 0

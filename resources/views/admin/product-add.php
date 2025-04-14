@@ -66,7 +66,6 @@ if (isset($_POST['AddProduct'])) {
         'status'    => check_string($_POST['status']),
         'minimum'   => isset($_POST['minimum']) ? $_POST['minimum'] : 1,
         'maximum'   => isset($_POST['maximum']) ? $_POST['maximum'] : 10000,
-        'allow_api' => isset($_POST['allow_api']) ? check_string($_POST['allow_api']) : 1,
         'preview'   => $url_image
     ]);
     if ($isInsert) {
@@ -225,14 +224,6 @@ if (isset($_POST['AddProduct'])) {
                                     <select class="form-control" name="filter_time_checklive" required>
                                         <option value="1">Check live gần nhất sẽ ưu tiên bán trước</option>
                                         <option value="0">Acc nào up lên web trước bán trước</option>
-                                        <option value="2">Acc nào up lên web sau bán trước</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1">Cho phép đấu API</label>
-                                    <select class="form-control" name="allow_api" required>
-                                        <option value="1">ON</option>
-                                        <option value="0">OFF</option>
                                     </select>
                                 </div>
                                 <div class="form-group">

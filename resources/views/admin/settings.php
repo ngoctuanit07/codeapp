@@ -75,9 +75,6 @@ require_once(__DIR__.'/../../../models/is_license.php');
                 'value' => $value
             ), " `name` = '$key' ");
         }
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Cập nhật thông tin website.';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Lưu thành công !")){window.history.back().location.reload();}</script>');
     } ?>
     <!-- Main content -->
@@ -175,14 +172,6 @@ require_once(__DIR__.'/../../../models/is_license.php');
                                     aria-labelledby="custom-tabs-three-home-tab">
                                     <form action="" method="POST">
                                         <div class="row">
-                                            <div class="col-lg-4">
-                                                <div class="form-group">
-                                                    <label for="exampleInputEmail1">Allowed Domains</label>
-                                                    <input type="text" class="form-control" name="domains"
-                                                        value="<?=$CMSNT->site('domains');?>">
-                                                        <small>Không thay đổi nếu không hiểu rõ, phí khôi phục 100.000đ 1 lần.</small>
-                                                </div>
-                                            </div>
                                             <div class="col-lg-4">
                                                 <div class="form-group">
                                                     <label for="exampleInputEmail1">Title Sidebar</label>
@@ -366,6 +355,21 @@ require_once(__DIR__.'/../../../models/is_license.php');
                                                         value="<?=$CMSNT->site('min_recharge');?>"
                                                         placeholder="VD 10000">
                                                     <i>Số tiền nạp tối thiểu để được tạo hoá đơn nạp tiền.</i>
+                                                </div>
+                                            </div>
+                                            <div class="col-lg-4">
+                                                <div class="form-group">
+                                                    <label for="exampleInputEmail1">Thời gian check live mỗi
+                                                        nick</label>
+                                                    <input type="number" class="form-control" name="time_check_live"
+                                                        value="<?=$CMSNT->site('time_check_live');?>"
+                                                        placeholder="VD 1800">
+                                                    <i>VD <?=$CMSNT->site('time_check_live');?> tức mỗi
+                                                        <?=timeAgo2($CMSNT->site('time_check_live'));?> hệ thống mới
+                                                        check live
+                                                        lại nick đó, số càng cao thì tỉ lệ check live sót càng thấp, nên
+                                                        để 1800
+                                                        giây (30 phút)</i>
                                                 </div>
                                             </div>
                                             <div class="col-lg-4">
@@ -725,23 +729,6 @@ require_once(__DIR__.'/../../../models/is_license.php');
                                             </div>
                                             <div class="col-lg-4">
                                                 <div class="form-group">
-                                                    <label>ON/OFF Tính năng tự động đăng xuất Admin khi thay đổi địa chỉ IP</label>
-                                                    <select class="form-control select2bs4"
-                                                        name="status_only_ip_login_admin">
-                                                        <option
-                                                            <?=$CMSNT->site('status_only_ip_login_admin') == 1 ? 'selected' : '';?>
-                                                            value="1">ON</option>
-                                                        <option
-                                                            <?=$CMSNT->site('status_only_ip_login_admin') == 0 ? 'selected' : '';?>
-                                                            value="0">OFF</option>
-                                                    </select>
-                                                    <i>Chức năng bảo mật, khuyên dùng.</i>
-                                                </div>
-                                            </div>
-
-                                             
-                                            <div class="col-lg-4">
-                                                <div class="form-group">
                                                     <label>Thông báo chạy MUA TÀI KHOẢN</label>
                                                     <textarea class="form-control"
                                                         placeholder="Nhập nội dung thông báo chạy, có thể dùng thẻ HTML"
@@ -801,6 +788,7 @@ require_once(__DIR__.'/../../../models/is_license.php');
                                     <form action="" method="POST">
                                         <div class="form-group">
                                             <label>Loại thông báo</label>
+                                            <?php if(checkAddon(112246) == true):?>
                                             <select class="form-control select2bs4" name="type_notification">
                                                 <option
                                                     <?=$CMSNT->site('type_notification') == 'telegram' ? 'selected' : '';?>
@@ -811,10 +799,15 @@ require_once(__DIR__.'/../../../models/is_license.php');
                                                     value="off">OFF
                                                 </option>
                                             </select>
+                                            <?php else:?>
+                                            <div class="alert alert-danger" role="alert">
+                                                <div class="iq-alert-text">Bạn chưa kích hoạt Addon này!</div>
+                                            </div>
+                                            <?php endif?>
                                         </div>
                                         <div class="form-group">
                                             <label for="exampleInputEmail1">Token Telegram (<a target="_blank"
-                                                    href="https://help.cmsnt.co/huong-dan/shopclone6-huong-dan-cau-hinh-bot-thong-bao-qua-telegram/">Xem
+                                                    href="https://cmsnt.vn/2022/05/huong-dan-cau-hinh-bot-thong-bao-qua-telegram/">Xem
                                                     hướng dẫn</a>)</label>
                                             <input type="text" class="form-control" name="token_telegram"
                                                 value="<?=$CMSNT->site('token_telegram');?>"
@@ -822,7 +815,7 @@ require_once(__DIR__.'/../../../models/is_license.php');
                                         </div>
                                         <div class="form-group">
                                             <label for="exampleInputEmail1">Chat ID Telegram (<a target="_blank"
-                                                    href="https://help.cmsnt.co/huong-dan/shopclone6-huong-dan-cau-hinh-bot-thong-bao-qua-telegram/">Xem
+                                                    href="https://cmsnt.vn/2022/05/huong-dan-cau-hinh-bot-thong-bao-qua-telegram/">Xem
                                                     hướng dẫn</a>)</label>
                                             <input type="text" class="form-control" name="chat_id_telegram"
                                                 value="<?=$CMSNT->site('chat_id_telegram');?>" placeholder="-788267800">
@@ -841,7 +834,10 @@ require_once(__DIR__.'/../../../models/is_license.php');
                                             </ul>
                                         </div>
                                         <div class="form-group">
-                                            <label for="exampleInputEmail1">Chat ID Group thông báo import tài nguyên</label>
+                                            <label for="exampleInputEmail1">Chat ID Group thông báo import tài nguyên
+                                                (<a target="_blank"
+                                                    href="https://cmsnt.vn/2022/05/huong-dan-cau-hinh-bot-thong-bao-qua-telegram/">Xem
+                                                    hướng dẫn</a>)</label>
                                             <input type="text" class="form-control" name="group_id_import_telegram"
                                                 value="<?=$CMSNT->site('group_id_import_telegram');?>"
                                                 placeholder="-788267800">

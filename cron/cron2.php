@@ -57,20 +57,13 @@
                             $url_image = 'assets/storage/images/category'.$rand.'.png';
                         }
                         $CMSNT->insert('categories', [
-                            'update_api'        => time(),
                             'id_api'            => check_string($category['id']),
                             'id_connect_api'    => $website['id'],
                             'status'            => $CMSNT->site('default_api_product_status'),
                             'name'              => check_string($category['name']),
                             'image'             => $url_image
                         ]);
-                        echo '<b style="color:red;">CREATE</b> Category '.check_string($category['name']).' thành công !<br>';
-                    }else{
-                        $CMSNT->update('categories', [
-                            'update_api'        => time(),
-                            'name'              => check_string($category['name'])
-                        ], " `id_api` = '".check_string($category['id'])."' AND `id_connect_api` = '".$website['id']."' ");
-                        echo '<b style="color:gren;">UPDATE</b> Category '.check_string($category['name']).' thành công !<br>';
+                        echo '<b style="color:red;">CREATE</b> - Tạo category '.check_string($category['name']).' thành công !<br>';
                     }
                     foreach($category['accounts'] as $account){
                         $product_name = check_string($account['name']);
@@ -81,7 +74,7 @@
                             $id_api = $CMSNT->get_row(" SELECT * FROM `categories` WHERE `id_api` = '".check_string($category['id'])."' AND `id_connect_api` = '".$website['id']."' ")['id'];
                             $CMSNT->insert('products', [
                                 'user_id'           => $website['user_id'],
-                                'category_id'       => !empty($id_api) ? $id_api : 0,
+                                'category_id'       => $id_api,
                                 'id_api'            => check_string($account['id']),
                                 'id_connect_api'    => $website['id'],
                                 'name'              => $product_name,
@@ -123,23 +116,16 @@
                         }
                     }
                 }
-                // XÓA SẢN PHẨM VÀ CHUYÊN MỤC KHI API KHÔNG ĐƯỢC CẬP NHẬT
-                $CMSNT->remove('products', " `id_connect_api` = '".$website['id']."' AND ".time()." - `update_api` >= 3600 ");
-                foreach($CMSNT->get_list(" SELECT * FROM `categories` WHERE `id_connect_api` = '".$website['id']."' AND ".time()." - `update_api` >= 3600 ") as $delete_category){
-                    $isRemoveCategory = $CMSNT->remove('categories', " `id` = '".$delete_category['id']."' ");
-                    if($isRemoveCategory){
-                        // Xóa ICON chuyên mục
-                        unlink('../../'.$delete_category['image']);
-                    }
-                }
-
-                // XOÁ SẢN PHẨM RÁC
-                foreach($CMSNT->get_list(" SELECT * FROM `products` WHERE `id_connect_api` != 0  ") as $row52){
-                    if(!$CMSNT->get_row(" SELECT * FROM `connect_api` WHERE `id` = '".$row52['id_connect_api']."' AND `status` = 1  ")){
-                        $CMSNT->remove('products', " `id` = '".$row52['id']."' ");
-                    }
-                }
-
             }
+            // ẨN SẢN PHẨM KHI API XOÁ HOẶC ẨN SẢN PHẨM
+            $CMSNT->remove('products', " `id_connect_api` = '".$website['id']."' AND ".time()." - `update_api` >= 3600 ");
+
+            // XOÁ SẢN PHẨM RÁC
+            foreach($CMSNT->get_list(" SELECT * FROM `products` WHERE `id_connect_api` != 0  ") as $row52){
+                if(!$CMSNT->get_row(" SELECT * FROM `connect_api` WHERE `id` = '".$row52['id_connect_api']."' AND `status` = 1  ")){
+                    $CMSNT->remove('products', " `id` = '".$row52['id']."' ");
+                }
+            }
+            
         }
     }

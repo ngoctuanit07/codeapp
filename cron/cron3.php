@@ -69,7 +69,7 @@
                             $id_api = $CMSNT->get_row(" SELECT * FROM `categories` WHERE `id_api` = '".check_string($category['id'])."' AND `id_connect_api` = '".$website['id']."' ")['id'];
                             $CMSNT->insert('products', [
                                 'user_id'           => $website['user_id'],
-                                'category_id'       => !empty($id_api) ? $id_api : 0,
+                                'category_id'       => $id_api,
                                 'id_api'            => check_string($account['id_product']),
                                 'id_connect_api'    => $website['id'],
                                 'name'              => $product_name,

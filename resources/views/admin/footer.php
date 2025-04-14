@@ -19,7 +19,6 @@
 $.ajax({
     url: "<?=BASE_URL('update.php');?>",
     type: "GET",
-    timeout: 3000,
     dateType: "text",
     data: {},
     success: function(result) {
@@ -87,8 +86,37 @@ setInterval(function() {
             href="https://www.cmsnt.co/?domain=<?=base_url_admin('');?>" target="_blank">CMSNT.CO</a></strong>
 </footer>
 </div>
- 
-<script type="text/javascript" src="https://cdn.fchat.vn/assets/embed/webchat.js?id=67efc9df63daf31c4c0c4496" async="async"></script>
+<!-- Messenger Plugin chat Code -->
+<div id="fb-root"></div>
+
+<!-- Your Plugin chat code -->
+<div id="fb-customer-chat" class="fb-customerchat">
+</div>
+
+<script>
+  var chatbox = document.getElementById('fb-customer-chat');
+  chatbox.setAttribute("page_id", "101939031161934");
+  chatbox.setAttribute("attribution", "biz_inbox");
+</script>
+
+<!-- Your SDK code -->
+<script>
+  window.fbAsyncInit = function() {
+    FB.init({
+      xfbml            : true,
+      version          : 'v16.0'
+    });
+  };
+
+  (function(d, s, id) {
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) return;
+    js = d.createElement(s); js.id = id;
+    js.src = 'https://connect.facebook.net/vi_VN/sdk/xfbml.customerchat.js';
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'facebook-jssdk'));
+</script>
+
 
 <!-- jQuery UI 1.11.4 -->
 <script src="<?=BASE_URL('public/AdminLTE3/');?>plugins/jquery-ui/jquery-ui.min.js"></script>

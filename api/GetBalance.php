@@ -39,8 +39,15 @@ if ($username != NULL && $password != NULL) {
     }
     if ($CMSNT->site('type_password') == 'bcrypt') {
         if (!password_verify($password, $getUser['password'])) {
-            // Rate limit
-            checkBlockIP('API', 5);
+            if($getUser['login_attempts'] >= $config['limit_block_ip_login_client']){
+                $CMSNT->insert('banned_ips', [
+                    'ip'                => myip(),
+                    'attempts'          => $getUser['login_attempts'],
+                    'create_gettime'    => gettime(),
+                    'banned'            => 1,
+                    'reason'            => __('Đăng nhập thất bại nhiều lần')
+                ]);
+            }
             if($getUser['login_attempts'] >= $config['limit_block_login_client']){
                 $User = new users();
                 $User->Banned($getUser['id'], __('Đăng nhập thất bại nhiều lần'));
@@ -51,9 +58,15 @@ if ($username != NULL && $password != NULL) {
         }
     } else {
         if ($getUser['password'] != TypePassword($password)) {
-            // Rate limit
-            checkBlockIP('API', 5);
-             
+            if($getUser['login_attempts'] >= $config['limit_block_ip_login_client']){
+                $CMSNT->insert('banned_ips', [
+                    'ip'                => myip(),
+                    'attempts'          => $getUser['login_attempts'],
+                    'create_gettime'    => gettime(),
+                    'banned'            => 1,
+                    'reason'            => __('Đăng nhập thất bại nhiều lần')
+                ]);
+            }
             if($getUser['login_attempts'] >= $config['limit_block_login_client']){
                 $User = new users();
                 $User->Banned($getUser['id'], __('Đăng nhập thất bại nhiều lần'));

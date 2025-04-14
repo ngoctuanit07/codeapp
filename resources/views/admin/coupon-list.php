@@ -101,9 +101,8 @@ require_once(__DIR__.'/nav.php');
                                             <td><b><?=$row['code'];?></b> (<?=$row['used'] >= $row['amount'] ? '<span style="color:red">Đã sử dụng hết</span>' : '<span style="color:green">Còn '.$AWWW2=$row['amount'] - $row['used'].' lượt sử dụng</span>';?>)</td>
                                             <td><span style="font-size: 15px;" class="badge badge-info"><?=format_cash($row['amount']);?></span>
                                             </td>
-                                            <td class="text-center"><span style="font-size: 15px;"
-                                                class="badge bg-danger"><?=format_cash($CMSNT->num_rows(" SELECT * FROM coupon_used WHERE `coupon_id` = '".$row['id']."' "));?></span>
-                                        </td>
+                                            <td><span style="font-size: 15px;" class="badge badge-danger"><?=format_cash($row['used']);?></span>
+                                            </td>
                                             <td><span style="font-size: 15px;" class="badge badge-dark"><?=$row['discount'];?>%</span></td>
                                             <td><?=$row['createdate'];?></td>
                                             <td>

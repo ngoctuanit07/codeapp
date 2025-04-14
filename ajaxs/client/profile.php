@@ -10,7 +10,7 @@ $Mobile_Detect = new Mobile_Detect();
 use PragmaRX\Google2FAQRCode\Google2FA;
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if ($CMSNT->site('status') != 1 && isSecureCookie('admin_login') != true) {
+    if ($CMSNT->site('status') != 1 && !isset($_SESSION['admin_login'])) {
         die(json_encode(['status' => 'error', 'msg' => __('Hệ thống đang bảo trì') ]));
     }
     if (isset($_POST['action']) && $_POST['action'] == 'ChangeProfile') {
@@ -27,12 +27,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (!$getUser = $CMSNT->get_row("SELECT * FROM `users` WHERE `token` = '".check_string($_POST['token'])."' ")) {
             die(json_encode(['status' => 'error', 'msg' => __('Vui lòng đăng nhập')]));
         }
+        if (empty($_POST['email'])) {
+            die(json_encode(['status' => 'error', 'msg' => __('Vui lòng nhập địa chỉ Email')]));
+        }
+        if (check_email($_POST['email']) == false) {
+            die(json_encode(['status' => 'error', 'msg' => __('Định dạng Email không hợp lệ')]));
+        }
         if(!empty($_POST['phone'])){
             if (isValidPhoneNumber($_POST['phone']) != true) {
                 die(json_encode(['status' => 'error', 'msg' => __('Vui lòng nhập số điện thoại hợp lệ')]));
             }
         }
         $isUpdate = $CMSNT->update("users", [
+            'email' => isset($_POST['email']) ? check_string($_POST['email']) : null,
             'fullname' => isset($_POST['fullname']) ? check_string($_POST['fullname']) : null,
             'phone' => isset($_POST['phone']) ? check_string($_POST['phone']) : null
         ], " `token` = '".check_string($_POST['token'])."' ");
@@ -89,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $isUpdate = $CMSNT->update("users", [
             'change_password'   => 1,
             'password'  => isset($_POST['newpassword']) ? TypePassword(check_string($_POST['newpassword'])) : null,
-            'token'     => generateUltraSecureToken()
+            'token'     => md5(random('QWERTYUIOPASDGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789', 6).time())
         ], " `token` = '".check_string($_POST['token'])."' ");
         if ($isUpdate) {
             $CMSNT->insert("logs", [
@@ -122,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             die(json_encode(['status' => 'error', 'msg' => __('Vui lòng nhập mã xác minh 2FA')]));
         }
         $google2fa = new Google2FA();
-        if ($google2fa->verifyKey($getUser['SecretKey_2fa'], check_string($_POST['secret']), 2) != true) {
+        if ($google2fa->verifyKey($getUser['SecretKey_2fa'], check_string($_POST['secret'])) != true) {
             die(json_encode(['status' => 'error', 'msg' => __('Mã xác minh không chính xác')]));
         }
         $isUpdate = $CMSNT->update("users", [
@@ -167,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             die(json_encode(['status' => 'error', 'msg' => __('Bạn đã nhập sai quá nhiều lần, vui lòng xác minh lại từ đầu')]));
         }
         $google2fa = new Google2FA();
-        if ($google2fa->verifyKey($getUser['SecretKey_2fa'], check_string($_POST['code']), 2) != true) {
+        if ($google2fa->verifyKey($getUser['SecretKey_2fa'], check_string($_POST['code'])) != true) {
             $CMSNT->insert("logs", [
                 'user_id'       => $getUser['id'],
                 'ip'            => myip(),
@@ -191,19 +198,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'time_session' => time(),
             'device' => $Mobile_Detect->getUserAgent()
         ], " `id` = '".$getUser['id']."' ");
-        $Mobile_Detect = new Mobile_Detect();
-
-        // Lưu đăng nhập vào Cookie
-        setSecureCookie('user_login', $getUser['token']);
-        setSecureCookie('user_agent', $Mobile_Detect->getUserAgent());
-
-        if($getUser['admin'] > 0){
-            setSecureCookie('admin_login', $getUser['token']);
-        }
-        // Login CTV
-        if($getUser['ctv'] > 0){
-            setSecureCookie('ctv_login', $getUser['token']);
-        }
+        setcookie("token", $getUser['token'], time() + $CMSNT->site('session_login'), "/");
+        $_SESSION['login'] = $getUser['token'];
         die(json_encode([
             'status' => 'success',
             'msg'    => __('Đăng nhập thành công')
@@ -266,16 +262,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'device' => $Mobile_Detect->getUserAgent()
         ], " `id` = '".$getUser['id']."' ");
         
-        // Lưu đăng nhập vào Cookie
-        setSecureCookie('user_login', $getUser['token']);
-        setSecureCookie('user_agent', $Mobile_Detect->getUserAgent());
-
-        if($getUser['admin'] > 0){
-            setSecureCookie('admin_login', $getUser['token']);
-        }
-        if($getUser['ctv'] > 0){
-            setSecureCookie('ctv_login', $getUser['token']);
-        }
+        setcookie("token", $getUser['token'], time() + $CMSNT->site('session_login'), "/");
+        $_SESSION['login'] = $getUser['token'];
         die(json_encode([
             'status' => 'success',
             'msg'    => __('Đăng nhập thành công')

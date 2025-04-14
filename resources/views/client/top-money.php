@@ -13,7 +13,15 @@ $body['footer'] = '
 
 ';
 if($CMSNT->site('sign_view_product') == 0){
-    if (isset($_COOKIE['user_login'])) {
+    if (isset($_COOKIE["token"])) {
+        $getUser = $CMSNT->get_row(" SELECT * FROM `users` WHERE `token` = '".check_string($_COOKIE['token'])."' ");
+        if (!$getUser) {
+            header("location: ".BASE_URL('client/logout'));
+            exit();
+        }
+        $_SESSION['login'] = $getUser['token'];
+    }
+    if (isset($_SESSION['login'])) {
         require_once(__DIR__.'/../../../models/is_user.php');
     }
 }else{

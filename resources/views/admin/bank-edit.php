@@ -74,11 +74,8 @@ if (isset($_POST['LuuNganHang'])) {
             'ip'            => myip(),
             'device'        => $Mobile_Detect->getUserAgent(),
             'createdate'    => gettime(),
-            'action'        => "Cập nhật thông tin ngân hàng (".check_string($_POST['short_name'])." - ".check_string($_POST['accountNumber']).") vào hệ thống."
+            'action'        => "Cập nhật thông tin ngân hàng (".$_POST['short_name']." - ".$_POST['account_number'].") vào hệ thống."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Cập nhật thông tin ngân hàng ('.check_string($_POST['short_name']).' - '.check_string($_POST['accountNumber']).') vào hệ thống.';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Lưu thành công !")){window.history.back().location.reload();}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Lưu thất bại !")){window.history.back().location.reload();}</script>');
@@ -103,14 +100,6 @@ if (isset($_POST['LuuNganHang'])) {
     </div>
     <div class="content">
         <div class="container-fluid">
-            <?php if(time() - $CMSNT->site('check_time_cron_bank') >= 120):?>
-            <div class="alert alert-warning alert-dismissible">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                <h5><i class="icon fas fa-exclamation-triangle"></i> Alert!</h5>
-                Vui lòng thực hiện <b>CRON JOB</b> liên kết: <a href=" <?=base_url('cron/bank.php');?>"
-                    target="_blank"><?=base_url('cron/bank.php');?></a>
-            </div>
-            <?php endif?>
             <div class="row">
                 <section class="col-lg-7 connectedSortable">
                     <div class="card card-primary card-outline">

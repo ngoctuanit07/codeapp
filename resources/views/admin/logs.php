@@ -205,7 +205,7 @@ $listDatatable = $CMSNT->get_list(" SELECT * FROM `logs` WHERE $where ORDER BY `
                                 <div class="col-sm-12 col-md-7">
                                     <?php
                                 $total = $CMSNT->num_rows(" SELECT * FROM `logs` WHERE $where ORDER BY id DESC ");
-                                if ($total > $sotin1trang){echo '<center>' . pagination(base_url("index.php?module=admin&action=logs&user_id=$user_id&content=$content&createdate=$createdate&ip=$ip&device=$device&"), $from, $total, $sotin1trang) . '</center>';}?>
+                                if ($total > $sotin1trang){echo '<center>' . pagination(base_url("index.php?module=admin&action=logs&user_id=$user_id&action=$action&createdate=$createdate&ip=$ip&device=$device&"), $from, $total, $sotin1trang) . '</center>';}?>
                                 </div>
                             </div>
                         </div>

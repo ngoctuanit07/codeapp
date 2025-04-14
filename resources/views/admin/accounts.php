@@ -29,7 +29,6 @@ $body['footer'] = '
     <script src="'.BASE_URL('public/AdminLTE3/').'plugins/datatables-buttons/js/buttons.colVis.min.js"></script>
 ';
 require_once(__DIR__.'/../../../models/is_admin.php');
-
 if (isset($_GET['id'])) {
     $id = check_string($_GET['id']);
     $row = $CMSNT->get_row("SELECT * FROM `products` WHERE `id` = '$id' ");
@@ -116,7 +115,7 @@ if (isset($_POST['AddAccounts']) && isset($_POST['listAccount'])) {
     $my_text = str_replace('{name}', $row['name'], $my_text);
     $my_text = str_replace('{amount}', $value_add + $value_update, $my_text);
     $my_text = str_replace('{time}', gettime(), $my_text);
-    sendMessTelegram($my_text, '', $CMSNT->site('group_id_import_telegram'));
+    sendMessTelegram($my_text, $CMSNT->site('group_id_import_telegram'));
 
     $Mobile_Detect = new Mobile_Detect();
     $CMSNT->insert("logs", [
@@ -140,10 +139,10 @@ if (isset($_POST['RemoveAccounts']) && isset($_POST['listAccount'])) {
         // xoá tài khoản bao gồm tài khoản đã bán
         if (isset($_POST['filter']) && $_POST['filter'] == 1) {
             if (isset($_POST['filter_like_remove']) && $_POST['filter_like_remove'] == 1) {
-                if (empty($clone) || strlen($clone) < 3) {
-                    continue; // Bỏ qua và chuyển sang phần tiếp theo của vòng lặp
+                if(empty($clone)){
+                    continue;
                 }
-                $isRemove = $CMSNT->remove("accounts", " `account` LIKE '%".str_replace(' ', '', $clone)."%'  ");
+                $isRemove = $CMSNT->remove("accounts", " `account` LIKE '%".trim($clone)."%'  ");
                 if ($isRemove) {
                     $value_delete++;
                 }
@@ -201,7 +200,7 @@ if (isset($_POST['RemoveAccounts']) && isset($_POST['listAccount'])) {
     <div class="content">
         <div class="container-fluid">
             <div class="row">
-                <a type="button"
+            <a type="button"
                     href="<?=base_url('index.php?module=admin&action=account-view&id='.check_string($_GET['id']));?>"
                     class="btn btn-primary btn-block ">XEM DANH SÁCH TÀI KHOẢN ĐANG BÁN</a>
                 <a type="button"
@@ -303,16 +302,12 @@ if (isset($_POST['RemoveAccounts']) && isset($_POST['listAccount'])) {
                                 </div>
                                 <div class="form-group">
                                     <div class="custom-control custom-checkbox">
-                                        <input class="custom-control-input" type="checkbox" name="filter_like_remove"
-                                            value="1" id="filter_like_remove">
-                                        <label for="filter_like_remove" class="custom-control-label">Xóa tài khoản theo
-                                            UID (<b style="color:red;">nguy hiểm</b>)</label>
+                                        <input class="custom-control-input" type="checkbox" name="filter_like_remove" value="1"
+                                            id="filter_like_remove">
+                                        <label for="filter_like_remove" class="custom-control-label">Xóa tài khoản theo UID (<b style="color:red;">nguy hiểm</b>)</label>
                                     </div>
-                                    <i>Vui lòng dùng cẩn thận chức năng này, hệ thống sẽ xóa toàn bộ tài khoản giống với
-                                        dữ liệu mà bạn nhập vào. Nếu dùng sai cách hệ thống sẽ xóa toàn bộ tài khoản
-                                        trên web bao gồm tài khoản đã bán và đang bán.</i>
                                 </div>
-
+                                <i>Vui lòng dùng cẩn thận chức năng này, hệ thống sẽ xóa toàn bộ tài khoản giống với UID mà bạn nhập vào</i>
                             </div>
                             <div class="card-footer clearfix">
                                 <button name="RemoveAccounts" class="btn btn-info btn-icon-left m-b-10" type="submit"><i
@@ -379,8 +374,7 @@ if (isset($_POST['RemoveAccounts']) && isset($_POST['listAccount'])) {
 <?=$die['account'];?>
 
 <?php }?></textarea>
-                            <p>Bạn nên copy LIST DIE trên sau đó kiểm tra lại một lần nữa trong Tool Check Live để đảm
-                                bảo rằng không nhầm lẫn.</p>
+<p>Bạn nên copy LIST DIE trên sau đó kiểm tra lại một lần nữa trong Tool Check Live để đảm bảo rằng không nhầm lẫn.</p>
                         </div>
                         <div class="card-footer clearfix">
                             <button type="button" onclick="copy()" class="btn btn-info copy"

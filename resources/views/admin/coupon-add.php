@@ -41,9 +41,6 @@ if (isset($_POST['AddCoupon'])) {
             'createdate'    => gettime(),
             'action'        => "Thêm mã giảm giá (".check_string($_POST['code']).") vào hệ thống."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Thêm mã giảm giá ('.check_string($_POST['code']).') vào hệ thống.';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Thêm thành công !")){location.href = "'.BASE_URL('admin/coupon-list').'";}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Thêm thất bại !")){window.history.back().location.reload();}</script>');

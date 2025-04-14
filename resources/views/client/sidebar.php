@@ -113,12 +113,13 @@
                                 <span class="ml-2"><?=__('Trang Chủ');?></span>
                             </a>
                         </li>
-                        <!-- <li class="<?=active_sidebar_client(['home']);?> sidebar-layout">
-                            <a href="<?=base_url('client/home');?>" class="svg-icon ">
+                   
+                       <li class="<?=active_sidebar_client(['spin']);?> sidebar-layout">
+                            <a href="<?=base_url('client/spin');?>" class="svg-icon ">
                                 <i class="fas fa-shopping-cart"></i>
-                                <span class="ml-2"><?=__('Mua Tài Khoản');?></span>
+                                <span class="ml-2"><?=__('Quay thưởng');?></span>
                             </a>
-                        </li> -->
+                        </li>
                         <li class="sidebar-layout">
                             <a href="#menuSanPham" class="svg-icon collapsed" data-toggle="collapse"
                                 aria-expanded="false">

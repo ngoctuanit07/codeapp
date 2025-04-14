@@ -50,9 +50,6 @@ if (isset($_POST['AddDiscount'])) {
             'createdate'    => gettime(),
             'action'        => "Thêm điều kiện giảm giá (".getRowRealtime('products', check_string($_POST['product_id']), 'name')." | ".format_cash(check_string($_POST['amount']))." | ".check_string($_POST['discount'])."%)."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Thêm điều kiện giảm giá ('.getRowRealtime('products', check_string($_POST['product_id']), 'name').' | '.format_cash(check_string($_POST['amount'])).' | '.check_string($_POST['discount']).'%).';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Thêm thành công !")){location.href = "'.BASE_URL('admin/discount-add').'";}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Thêm thất bại !")){window.history.back().location.reload();}</script>');

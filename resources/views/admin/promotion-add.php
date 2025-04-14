@@ -38,9 +38,6 @@ if (isset($_POST['AddPromotion'])) {
             'createdate'    => gettime(),
             'action'        => "Thêm mốc khuyến mãi (".format_currency(check_string($_POST['amount']))." - ".check_string($_POST['discount'])."%) vào hệ thống."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Thêm mốc khuyến mãi ('.format_currency(check_string($_POST['amount'])).' - '.check_string($_POST['discount']).'%).';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Thêm thành công !")){location.href = "'.BASE_URL('admin/promotion-list').'";}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Thêm thất bại !")){window.history.back().location.reload();}</script>');

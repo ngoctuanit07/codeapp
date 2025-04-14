@@ -76,9 +76,6 @@ if (isset($_POST['AddDocument'])) {
             'createdate'    => gettime(),
             'action'        => "Thêm tài liệu vào hệ thống."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Thêm tài liệu ('.check_string($_POST['name']).').';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Thêm thành công !")){location.href = "'.BASE_URL('admin/document-list').'";}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Thêm thất bại !")){window.history.back().location.reload();}</script>');

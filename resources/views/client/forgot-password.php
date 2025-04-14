@@ -16,7 +16,6 @@ $body['footer'] = '
 ';
 require_once(__DIR__.'/header.php');
 ?>
-
 <style>
     .bg-image {
     background-position: 0 50%;
@@ -165,3 +164,5 @@ $("#btnForgotPassword").on("click", function() {
     });
 });
 </script>
+
+

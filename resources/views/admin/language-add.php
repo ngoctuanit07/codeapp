@@ -56,9 +56,6 @@ if (isset($_POST['AddLang'])) {
             'createdate'    => gettime(),
             'action'        => "Thêm ngôn ngữ (".$_POST['lang'].") vào hệ thống."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Thêm ngôn ngữ ('.check_string($_POST['lang']).').';
-        sendMessAdmin($my_text);    
         die('<script type="text/javascript">if(!alert("Thêm thành công !")){location.href = "'.BASE_URL('admin/language-list').'";}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Thêm thất bại !")){window.history.back().location.reload();}</script>');

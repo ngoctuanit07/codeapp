@@ -47,9 +47,6 @@ if (isset($_POST['SaveCoupon'])) {
             'createdate'    => gettime(),
             'action'        => "Chỉnh sửa mã giảm giá (".$row['code']." ID ".$row['id'].")."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Cập nhật mã giảm giá ('.$row['code'].' ID '.$row['id'].').';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Lưu thành công!")){window.history.back().location.reload();}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Lưu thất bại!")){window.history.back().location.reload();}</script>');

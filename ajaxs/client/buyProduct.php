@@ -16,7 +16,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($CMSNT->site('status_demo') != 0) {
         die(json_encode(['status' => 'error', 'msg' => 'Bạn không được dùng chức năng này vì đây là trang web demo']));
     }
-    if ($CMSNT->site('status') != 1 && isSecureCookie('admin_login') != true) {
+    if ($CMSNT->site('status') != 1 && !isset($_SESSION['admin_login'])) {
         die(json_encode(['status' => 'error', 'msg' => __('Hệ thống đang bảo trì')]));
     }
     if (empty($_POST['id'])) {
@@ -58,19 +58,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     $id = check_string($_POST['id']);
     $amount = check_string($_POST['amount']);
-    if (is_numeric($amount) && floor($amount) != $amount) {
-        die(json_encode(['status' => 'error', 'msg' => __('Số lượng mua không hợp lệ')]));
-    }
-    if($row['id_connect_api'] != 0){
+    if($row['id_api'] != 0){
         // LẤY ROW TABLE CONNECT_API
         $row_connect_api = $CMSNT->get_row(" SELECT * FROM `connect_api` WHERE `id` = '".$row['id_connect_api']."' ");
+        // // API CMSNT
+        // if($row_connect_api['type'] == 'CMSNT'){
+        //     $data = curl_get2($row_connect_api['domain']."/api/InfoResource.php?username=".$row_connect_api['username']."&password=".$row_connect_api['password']."&id=".$row['id_api']);
+        //     $data = json_decode($data, true);
+        //     if($data['status'] != 'success'){
+        //         die(json_encode(['status' => 'error', 'msg' => __($data['msg'])]));
+        //     }
+        //     if($amount > $data['data']['amount']){
+        //         die(json_encode(['status' => 'error', 'msg' => __('Số lượng trong hệ thống không đủ')]));
+        //     }
+        // }
+
+        // if($row_connect_api['type'] == 'API_1' || $row_connect_api['type'] == 'API_4' || $row_connect_api['type'] == 'DONGVANFB' || $row_connect_api['type'] == 'API_6' || $row_connect_api['type'] == 'CMSNT'){
+        //     if($amount > $row['api_stock']){
+        //         die(json_encode(['status' => 'error', 'msg' => __('Số lượng trong hệ thống không đủ')]));
+        //     }
+        // }
         if($amount > $row['api_stock']){
             die(json_encode(['status' => 'error', 'msg' => __('Số lượng trong hệ thống không đủ')]));
         }
 
     }else{
         // SỐ LƯỢNG HỆ THỐNG
-        if ($amount > $CMSNT->get_row("SELECT COUNT(id) FROM `accounts` WHERE `product_id` = '$id' AND `buyer` IS NULL AND `status` = 'LIVE' ")['COUNT(id)']) { 
+        if ($amount > $CMSNT->get_row("SELECT COUNT(id) FROM `accounts` WHERE `product_id` = '$id' AND `buyer` IS NULL AND `status` = 'LIVE' ")['COUNT(id)']) {
             die(json_encode(['status' => 'error', 'msg' => __('Số lượng trong hệ thống không đủ')]));
         }
     }
@@ -89,7 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         die(json_encode(['status' => 'error', 'msg' => __('Số dư không đủ, vui lòng nạp thêm')]));
     }
     $trans_id = random("QWETYUIOPASDFGHJKLXCVBNM", 4).time();
-    $isBuy = $User->RemoveCredits($getUser['id'], $total_payment, __('Thanh toán đơn hàng mua tài khoản')." (".check_string($row['name']).")"." #".$trans_id, 'BUY_WEBSITE_'.uniqid().'_'.$trans_id);
+    $isBuy = $User->RemoveCredits($getUser['id'], $total_payment, __('Thanh toán đơn hàng mua tài khoản')." (".check_string($row['name']).")"." #".$trans_id);
     if ($isBuy) {
         if (getRowRealtime("users", $getUser['id'], "money") < 0) {
             $User->Banned($getUser['id'], __('Gian lận khi mua tài khoản'));
@@ -97,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         $api_trans_id = NULL;
         $id_connect_api = 0;
-        if($row['id_connect_api'] != 0){
+        if($row['id_api'] != 0){
 
 
             // API CMSNT
@@ -127,33 +141,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
 
-
-            // API SHOPCLONE7
-            if($row_connect_api['type'] == 'SHOPCLONE7'){
-                $data = buy_API_SHOPCLONE7($row_connect_api['domain'], $row_connect_api['username'], $row_connect_api['password'], $row['id_api'], $amount);
-                $data = json_decode($data, true);
-                if($data['status'] == 'error'){
-                    $User->RefundCredits($getUser['id'], $total_payment, "[Error] ".__('Hoàn tiền đơn hàng mua tài khoản')." #".$trans_id." - ".$row['name']);
-                    die(json_encode(['status' => 'error', 'msg' => __($data['msg'])]));
-                }
-                $api_trans_id = $data['trans_id'];
-                $id_connect_api = $row['id_connect_api'];
-                $isUpdateAccount = 1;
-                foreach($data['data'] as $account){
-                    // THÊM TÀI KHOẢN TỪ API VÀO HỆ THỐNG
-                    $CMSNT->insert("accounts", [
-                        'seller'        => $row['user_id'],
-                        'buyer'         => $getUser['id'],
-                        'trans_id'      => $trans_id,
-                        'api_trans_id'  => $api_trans_id,
-                        'account'       => $account,
-                        'status'        => 'LIVE',
-                        'update_date'   => gettime(),
-                        'create_date'   => gettime(),
-                        'product_id'    =>  $row['id']
-                    ]);
-                }
-            }
 
             // API 1
             if($row_connect_api['type'] == 'API_1'){
@@ -261,12 +248,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         break;
                     }
                 }
-                if(explode(PHP_EOL, $data_account['order']['data'])){
-                    $lines = explode(PHP_EOL, $data_account['order']['data']);
-                }else{
-                    // FIX DO API BMTRAU THAY ĐỔI JSON API
-                    $lines = $data_account['order']['data'];
-                }
+                $lines = explode(PHP_EOL, $data_account['order']['data']);
                 foreach($lines as $account){
                     if($account == ''){
                         continue;
@@ -562,69 +544,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
 
-            // API 17
-            if($row_connect_api['type'] == 'API_17'){
-                $data = curl_get2($row_connect_api['domain']."/api/BuyProduct.php?username=".$row_connect_api['username']."&password=".$row_connect_api['password']."&id=".$row['id_api'].'&amount='.$amount);
-                $data = json_decode($data, true);
-                if($data['status'] == 'error'){
-                    $User->RefundCredits($getUser['id'], $total_payment, "[Error] ".__('Hoàn tiền đơn hàng mua tài khoản')." #".$trans_id." - ".$row['name']);
-                    die(json_encode(['status' => 'error', 'msg' => __($data['msg'])]));
-                }
-                $api_trans_id = $data['data']['trans_id'];
-                $id_connect_api = $row['id_connect_api'];
-                $isUpdateAccount = 1;
-                foreach($data['data']['lists'] as $account){
-                    // THÊM TÀI KHOẢN TỪ API VÀO HỆ THỐNG
-                    $CMSNT->insert("accounts", [
-                        'seller'        => $row['user_id'],
-                        'buyer'         => $getUser['id'],
-                        'trans_id'      => $trans_id,
-                        'api_trans_id'  => $api_trans_id,
-                        'account'       => $account['account'],
-                        'status'        => 'LIVE',
-                        'update_date'   => gettime(),
-                        'create_date'   => gettime(),
-                        'product_id'    =>  $row['id']
-                    ]);
-                }
-            }
-            
-            // API 23
-            if($row_connect_api['type'] == 'API_23'){
-                $response = buy_API_23($row_connect_api['domain'], $row_connect_api['password'], $row['id_api'], $amount);
-                $data = json_decode($response, true);
-                if($data['status'] != 'success'){
-                    $User->RefundCredits($getUser['id'], $total_payment, "[Error] ".__('Hoàn tiền đơn hàng mua tài khoản')." #".$trans_id." - ".$row['name']." (".$data['message'].")");
-                    die(json_encode(['status' => 'error', 'msg' => __($data['detail'])]));
-                }
-                $order_id = NULL;
-                $api_trans_id = $order_id;
-                $id_connect_api = $row['id_connect_api'];
-                $isUpdateAccount = 1;
-                foreach(explode(',', $data['data']) as $account){
-                    if (!empty($account)) {
-                        // THÊM TÀI KHOẢN TỪ API VÀO HỆ THỐNG
-                        $CMSNT->insert("accounts", [
-                            'seller'        => $row['user_id'],
-                            'buyer'         => $getUser['id'],
-                            'trans_id'      => $trans_id,
-                            'api_trans_id'  => $api_trans_id,
-                            'account'       => check_string($account),
-                            'status'        => 'LIVE',
-                            'update_date'   => gettime(),
-                            'create_date'   => gettime(),
-                            'product_id'    => $row['id']
-                        ]);
-                    }
-                }
-            }
-
         }else{
             $order_by = 'ORDER BY `id` ASC';
             if($row['filter_time_checklive'] == 1){
                 $order_by = 'ORDER BY `time_live` DESC';
-            } else if($row['filter_time_checklive'] == 2){
-                $order_by = 'ORDER BY `id` DESC';
             }
             // MUA TÀI KHOẢN TỪ HỆ THỐNG
             $isUpdateAccount = $CMSNT->update_value("accounts", [
@@ -634,11 +557,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ], " `product_id` = '$id' AND `buyer` IS NULL AND `status` = 'LIVE' $order_by ", $amount);
         }
         if ($isUpdateAccount) {
-            if($CMSNT->num_rows(" SELECT * FROM `accounts` WHERE `trans_id` = '$trans_id' AND `buyer` = '".$getUser['id']."' ") == 0){
-                // Hoàn tiền người mua
-                $User->RefundCredits($getUser['id'], $total_payment, "[Error] Hoàn tiền đơn hàng mua tài khoản #".$trans_id." - ".$row['name']);
-                die(json_encode(['status' => 'error', 'msg' => __('Số lượng trong hệ thống không đủ')]));
-            }
             /* THÊM ĐƠN HÀNG VÀO HỆ THỐNG */
             $CMSNT->insert("orders", [
                 'trans_id'      => $trans_id,
@@ -688,7 +606,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // TẠO FILE TXT
                 $file_txt_email = '';
                 foreach ($CMSNT->get_list(" SELECT * FROM `accounts` WHERE `trans_id` = '$trans_id' ORDER BY id DESC ") as $clone_txt) {
-                    $file_txt_email .= htmlspecialchars_decode($clone_txt['account']).PHP_EOL;
+                    $file_txt_email .= $clone.PHP_EOL.htmlspecialchars_decode($clone_txt['account']);
                 }
                 $file_txt_name = $trans_id.".txt";
                 file_put_contents($file_txt_name, $file_txt_email);

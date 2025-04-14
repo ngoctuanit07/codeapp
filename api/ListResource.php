@@ -25,8 +25,15 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
     $password = check_string($_GET['password']);
     if ($CMSNT->site('type_password') == 'bcrypt') {
         if (!password_verify($password, $getUser['password'])) {
-            // Rate limit
-            checkBlockIP('API', 5);
+            if($getUser['login_attempts'] >= $config['limit_block_ip_login_client']){
+                $CMSNT->insert('banned_ips', [
+                    'ip'                => myip(),
+                    'attempts'          => $getUser['login_attempts'],
+                    'create_gettime'    => gettime(),
+                    'banned'            => 1,
+                    'reason'            => __('Đăng nhập thất bại nhiều lần')
+                ]);
+            }
             if($getUser['login_attempts'] >= $config['limit_block_login_client']){
                 $User = new users();
                 $User->Banned($getUser['id'], __('Đăng nhập thất bại nhiều lần'));
@@ -37,8 +44,15 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
         }
     } else {
         if ($getUser['password'] != TypePassword($password)) {
-            // Rate limit
-            checkBlockIP('API', 5);
+            if($getUser['login_attempts'] >= $config['limit_block_ip_login_client']){
+                $CMSNT->insert('banned_ips', [
+                    'ip'                => myip(),
+                    'attempts'          => $getUser['login_attempts'],
+                    'create_gettime'    => gettime(),
+                    'banned'            => 1,
+                    'reason'            => __('Đăng nhập thất bại nhiều lần')
+                ]);
+            }
             if($getUser['login_attempts'] >= $config['limit_block_login_client']){
                 $User = new users();
                 $User->Banned($getUser['id'], __('Đăng nhập thất bại nhiều lần'));
@@ -52,7 +66,7 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
     $list_category = [];
     foreach ($CMSNT->get_list("SELECT * FROM `categories` WHERE `status` = 1 ORDER BY `id` ") as $category) {
         $list_dichvu = [];
-        foreach ($CMSNT->get_list("SELECT * FROM `products` WHERE `allow_api` = 1 AND `status` = 1 AND `category_id` = '".$category['id']."'  ORDER BY `id` ") as $row) {
+        foreach ($CMSNT->get_list("SELECT * FROM `products` WHERE  `status` = 1 AND `category_id` = '".$category['id']."'  ORDER BY `id` ") as $row) {
             $conlai = $row['id_api'] != 0 ? $row['api_stock'] : $CMSNT->get_row("SELECT COUNT(id) FROM `accounts` WHERE `product_id` = '".$row['id']."' AND `buyer` IS NULL AND `status` = 'LIVE' ")['COUNT(id)'];
             $sold = $CMSNT->get_row(" SELECT COUNT(id) FROM `accounts` WHERE `product_id` = '".$row['id']."' AND `buyer` IS NOT NULL ")['COUNT(id)'];
             $list_dichvu[] = [

@@ -62,7 +62,7 @@ if (isset($_POST['SaveProduct'])) {
         }
     }
     $isInsert = $CMSNT->update("products", [
-        'name' => check_string($_POST['name']),
+        'name' => $_POST['name'],
         'category_id' => check_string($_POST['category_id']),
         'price' => check_string($_POST['price']),
         'content' => isset($_POST['content']) ? $_POST['content'] : null,
@@ -73,7 +73,6 @@ if (isset($_POST['SaveProduct'])) {
         'filter_time_checklive' => isset($_POST['filter_time_checklive']) ? check_string($_POST['filter_time_checklive']) : 0,
         'time_delete_account' => isset($_POST['time_delete_account']) ? check_string($_POST['time_delete_account']) : 0,
         'status' => check_string($_POST['status']),
-        'allow_api' => isset($_POST['allow_api']) ? check_string($_POST['allow_api']) : 1,
         'minimum'   => isset($_POST['minimum']) ? $_POST['minimum'] : 1,
         'maximum'   => isset($_POST['maximum']) ? $_POST['maximum'] : 10000
     ], " `id` = '".$row['id']."' ");
@@ -84,11 +83,8 @@ if (isset($_POST['SaveProduct'])) {
             'ip'            => myip(),
             'device'        => $Mobile_Detect->getUserAgent(),
             'createdate'    => gettime(),
-            'action'        => "Chỉnh sửa sản phẩm (".check_string($_POST['name'])." ID ".$row['id'].")."
+            'action'        => "Chỉnh sửa sản phẩm (".$_POST['name']." ID ".$row['id'].")."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Cập nhật sản phẩm ('.check_string($_POST['name']).' ID '.$row['id'].').';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Lưu thành công!")){window.history.back().location.reload();}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Lưu thất bại!")){window.history.back().location.reload();}</script>');
@@ -239,14 +235,6 @@ if (isset($_POST['SaveProduct'])) {
                                     <select class="form-control" name="filter_time_checklive" required>
                                         <option <?=$row['filter_time_checklive'] == 1 ? 'selected' : '';?> value="1">Check live gần nhất sẽ ưu tiên bán trước</option>
                                         <option <?=$row['filter_time_checklive'] == 0 ? 'selected' : '';?> value="0">Acc nào up lên web trước bán trước</option>
-                                        <option <?=$row['filter_time_checklive'] == 2 ? 'selected' : '';?> value="2">Acc nào up lên web sau bán trước</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="exampleInputEmail1">Cho phép đấu API</label>
-                                    <select class="form-control" name="allow_api" required>
-                                        <option <?=$row['allow_api'] == 1 ? 'selected' : '';?> value="1">ON</option>
-                                        <option <?=$row['allow_api'] == 0 ? 'selected' : '';?> value="0">OFF</option>
                                     </select>
                                 </div>
                                 <div class="form-group">

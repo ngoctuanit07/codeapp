@@ -69,9 +69,6 @@ if (isset($_POST['create'])) {
             'createdate'    => gettime(),
             'action'        => "Thêm menu (".check_string($_POST['name']).") vào hệ thống."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Thêm menu ('.check_string($_POST['name']).').';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Thêm thành công !")){location.href = "'.BASE_URL('admin/menu-list').'";}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Thêm menu thất bại, vui lòng thử lại!")){window.history.back().location.reload();}</script>');

@@ -10,7 +10,7 @@ $CMSNT = new DB();
 $Mobile_Detect = new Mobile_Detect();
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if ($CMSNT->site('status') != 1 && isSecureCookie('admin_login') != true) {
+    if ($CMSNT->site('status') != 1 && !isset($_SESSION['admin_login'])) {
         die(json_encode(['status' => 'error', 'msg' => 'Hệ thống đang bảo trì.']));
     }
     if (empty($_POST['id'])) {

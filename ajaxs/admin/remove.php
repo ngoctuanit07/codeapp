@@ -220,15 +220,7 @@ if($_POST['action'] == 'removeConnectAPI'){
     }
     $isRemove = $CMSNT->remove("connect_api", " `id` = '$id' ");
     if ($isRemove) {
-
-        foreach($CMSNT->get_list(" SELECT * FROM `categories` WHERE `id_connect_api` = '".$row['id']."' ") as $delete_category){
-            $isRemoveCategory = $CMSNT->remove('categories', " `id` = '".$delete_category['id']."' ");
-            if($isRemoveCategory){
-                // Xóa ICON chuyên mục
-                unlink('../../'.$delete_category['image']);
-            }
-        }
-
+        $CMSNT->remove('categories', " `id_connect_api` = '".$row['id']."' ");
         $CMSNT->remove('products', " `id_connect_api` = '".$row['id']."' ");
         $Mobile_Detect = new Mobile_Detect();
         $CMSNT->insert("logs", [

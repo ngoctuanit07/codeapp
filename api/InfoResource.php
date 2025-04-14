@@ -25,8 +25,15 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
     $password = check_string($_GET['password']);
     if ($CMSNT->site('type_password') == 'bcrypt') {
         if (!password_verify($password, $getUser['password'])) {
-            // Rate limit
-            checkBlockIP('API', 5);
+            if($getUser['login_attempts'] >= $config['limit_block_ip_login_client']){
+                $CMSNT->insert('banned_ips', [
+                    'ip'                => myip(),
+                    'attempts'          => $getUser['login_attempts'],
+                    'create_gettime'    => gettime(),
+                    'banned'            => 1,
+                    'reason'            => __('Đăng nhập thất bại nhiều lần')
+                ]);
+            }
             if($getUser['login_attempts'] >= $config['limit_block_login_client']){
                 $User = new users();
                 $User->Banned($getUser['id'], __('Đăng nhập thất bại nhiều lần'));
@@ -37,8 +44,15 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
         }
     } else {
         if ($getUser['password'] != TypePassword($password)) {
-            // Rate limit
-            checkBlockIP('API', 5);
+            if($getUser['login_attempts'] >= $config['limit_block_ip_login_client']){
+                $CMSNT->insert('banned_ips', [
+                    'ip'                => myip(),
+                    'attempts'          => $getUser['login_attempts'],
+                    'create_gettime'    => gettime(),
+                    'banned'            => 1,
+                    'reason'            => __('Đăng nhập thất bại nhiều lần')
+                ]);
+            }
             if($getUser['login_attempts'] >= $config['limit_block_login_client']){
                 $User = new users();
                 $User->Banned($getUser['id'], __('Đăng nhập thất bại nhiều lần'));
@@ -59,12 +73,6 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
         die(json_encode([
             'status'    => 'error',
             'msg'       => 'ID sản phẩm không hợp lệ'
-        ]));
-    }
-    if($row['allow_api'] == 0){
-        die(json_encode([
-            'status'    => 'error',
-            'msg'       => __('Sản phẩm này không được phép đấu API')
         ]));
     }
     // $conlai = $CMSNT->num_rows(" SELECT * FROM `accounts` WHERE `product_id` = '".$row['id']."' AND `status` = 'LIVE' AND `buyer` IS NULL ");

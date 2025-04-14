@@ -3,132 +3,90 @@
 if (!defined('IN_SITE')) {
     die('The Request Not Found');
 }
-
-include_once(__DIR__ . '/../vendor/autoload.php');
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/../');
+include_once(__DIR__.'/../vendor/autoload.php');
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__.'/../');
 $dotenv->load();
+session_start();
 
 class DB
 {
     private $ketnoi;
-
-    // Kết nối cơ sở dữ liệu
     public function connect()
     {
         if (!$this->ketnoi) {
-            $this->ketnoi = mysqli_connect(
-                $_ENV['DB_HOST'],
-                $_ENV['DB_USERNAME'],
-                $_ENV['DB_PASSWORD'],
-                $_ENV['DB_DATABASE']
-            ) or die('Máy chủ đang quá tải, vui lòng thử lại sau');
-            mysqli_set_charset($this->ketnoi, 'utf8');
+            $this->ketnoi = mysqli_connect($_ENV['DB_HOST'], $_ENV['DB_USERNAME'], $_ENV['DB_PASSWORD'], $_ENV['DB_DATABASE']) or die('Máy chủ đang quá tải, vui lòng thử lại sau');
+            mysqli_query($this->ketnoi, "set names 'utf8' ");
         }
     }
-
-    // Ngắt kết nối cơ sở dữ liệu
     public function dis_connect()
     {
         if ($this->ketnoi) {
             mysqli_close($this->ketnoi);
         }
     }
-
-    // Lấy giá trị từ bảng settings
     public function site($data)
     {
         $this->connect();
-        $stmt = $this->ketnoi->prepare("SELECT `value` FROM `settings` WHERE `name` = ?");
-        $stmt->bind_param('s', $data);
-        $stmt->execute();
-        $result = $stmt->get_result()->fetch_assoc();
-        $stmt->close();
-        return $result['value'] ?? null;
+        $row = $this->ketnoi->query("SELECT * FROM `settings` WHERE `name` = '$data' ")->fetch_array();
+        return $row['value'];
     }
-
-    // Thực thi câu truy vấn SQL
     public function query($sql)
     {
         $this->connect();
-        return $this->ketnoi->query($sql);
+        $row = $this->ketnoi->query($sql);
+        return $row;
     }
-
-    // Tăng giá trị cột
     public function cong($table, $data, $sotien, $where)
     {
         $this->connect();
-        $sql = "UPDATE `$table` SET `$data` = `$data` + ? WHERE $where";
-        $stmt = $this->ketnoi->prepare($sql);
-        $stmt->bind_param('d', $sotien);
-        $stmt->execute();
-        $stmt->close();
+        $row = $this->ketnoi->query("UPDATE `$table` SET `$data` = `$data` + '$sotien' WHERE $where ");
+        return $row;
     }
-
-    // Giảm giá trị cột
     public function tru($table, $data, $sotien, $where)
     {
         $this->connect();
-        $sql = "UPDATE `$table` SET `$data` = `$data` - ? WHERE $where";
-        $stmt = $this->ketnoi->prepare($sql);
-        $stmt->bind_param('d', $sotien);
-        $stmt->execute();
-        $stmt->close();
+        $row = $this->ketnoi->query("UPDATE `$table` SET `$data` = `$data` - '$sotien' WHERE $where ");
+        return $row;
     }
-
-    // Thêm dữ liệu vào bảng
     public function insert($table, $data)
     {
         $this->connect();
-        $fields = implode(',', array_keys($data));
-        $placeholders = implode(',', array_fill(0, count($data), '?'));
-        $values = array_values($data);
+        $field_list = '';
+        $value_list = '';
+        foreach ($data as $key => $value) {
+            $field_list .= ",$key";
+            $value_list .= ",'".mysqli_real_escape_string($this->ketnoi, $value)."'";
+        }
+        $sql = 'INSERT INTO '.$table. '('.trim($field_list, ',').') VALUES ('.trim($value_list, ',').')';
 
-        $sql = "INSERT INTO `$table` ($fields) VALUES ($placeholders)";
-        $stmt = $this->ketnoi->prepare($sql);
-        $stmt->bind_param(str_repeat('s', count($values)), ...$values);
-        $stmt->execute();
-        $stmt->close();
+        return mysqli_query($this->ketnoi, $sql);
     }
-
-    // Cập nhật dữ liệu trong bảng
     public function update($table, $data, $where)
     {
         $this->connect();
-        $set = implode(', ', array_map(fn($key) => "$key = ?", array_keys($data)));
-        $values = array_values($data);
-
-        $sql = "UPDATE `$table` SET $set WHERE $where";
-        $stmt = $this->ketnoi->prepare($sql);
-        $stmt->bind_param(str_repeat('s', count($values)), ...$values);
-        $stmt->execute();
-        $stmt->close();
+        $sql = '';
+        foreach ($data as $key => $value) {
+            $sql .= "$key = '".mysqli_real_escape_string($this->ketnoi, $value)."',";
+        }
+        $sql = 'UPDATE '.$table. ' SET '.trim($sql, ',').' WHERE '.$where;
+        return mysqli_query($this->ketnoi, $sql);
     }
-
-    // Cập nhật dữ liệu với giới hạn
-    public function update_value($table, $data, $where, $limit)
+    public function update_value($table, $data, $where, $value1)
     {
         $this->connect();
-        $set = implode(', ', array_map(fn($key) => "$key = ?", array_keys($data)));
-        $values = array_values($data);
-
-        $sql = "UPDATE `$table` SET $set WHERE $where LIMIT ?";
-        $stmt = $this->ketnoi->prepare($sql);
-        $stmt->bind_param(str_repeat('s', count($values)) . 'i', ...$values, $limit);
-        $stmt->execute();
-        $stmt->close();
+        $sql = '';
+        foreach ($data as $key => $value) {
+            $sql .= "$key = '".mysqli_real_escape_string($this->ketnoi, $value)."',";
+        }
+        $sql = 'UPDATE '.$table. ' SET '.trim($sql, ',').' WHERE '.$where.' LIMIT '.$value1;
+        return mysqli_query($this->ketnoi, $sql);
     }
-
-    // Xóa dữ liệu trong bảng
     public function remove($table, $where)
     {
         $this->connect();
-        $sql = "DELETE FROM `$table` WHERE $where";
-        $stmt = $this->ketnoi->prepare($sql);
-        $stmt->execute();
-        $stmt->close();
+        $sql = "DELETE FROM $table WHERE $where";
+        return mysqli_query($this->ketnoi, $sql);
     }
-
-    // Lấy danh sách dữ liệu
     public function get_list($sql)
     {
         $this->connect();
@@ -136,15 +94,13 @@ class DB
         if (!$result) {
             die('Câu truy vấn bị sai');
         }
-        $return = [];
+        $return = array();
         while ($row = mysqli_fetch_assoc($result)) {
             $return[] = $row;
         }
         mysqli_free_result($result);
         return $return;
     }
-
-    // Lấy một dòng dữ liệu
     public function get_row($sql)
     {
         $this->connect();
@@ -154,10 +110,11 @@ class DB
         }
         $row = mysqli_fetch_assoc($result);
         mysqli_free_result($result);
-        return $row ?: false;
+        if ($row) {
+            return $row;
+        }
+        return false;
     }
-
-    // Đếm số dòng dữ liệu
     public function num_rows($sql)
     {
         $this->connect();
@@ -167,7 +124,10 @@ class DB
         }
         $row = mysqli_num_rows($result);
         mysqli_free_result($result);
-        return $row ?: false;
+        if ($row) {
+            return $row;
+        }
+        return false;
     }
 }
 

@@ -11,7 +11,7 @@ $CMSNT = new DB();
 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if ($CMSNT->site('status') != 1 && isSecureCookie('admin_login') != true) {
+    if ($CMSNT->site('status') != 1 && !isset($_SESSION['admin_login'])) {
         die(json_encode(['status' => 'error', 'msg' => __('Hệ thống đang bảo trì')]));
     }
     if (empty($_POST['username'])) {
@@ -48,8 +48,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = check_string($_POST['password']);
     $getUser = $CMSNT->get_row("SELECT * FROM `users` WHERE `username` = '$username' ");
     if (!$getUser) {
-        // Rate limit
-        checkBlockIP('LOGIN', 5);
         die(json_encode([
             'status'    => 'error',
             'msg'       => __('Thông tin đăng nhập không chính xác')
@@ -60,8 +58,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     if ($CMSNT->site('type_password') == 'bcrypt') {
         if (!password_verify($password, $getUser['password'])) {
-            // Rate limit
-            checkBlockIP('LOGIN', 5);
+            if($getUser['login_attempts'] >= $config['limit_block_ip_login_client']){
+                $CMSNT->insert('banned_ips', [
+                    'ip'                => myip(),
+                    'attempts'          => $getUser['login_attempts'],
+                    'create_gettime'    => gettime(),
+                    'banned'            => 1,
+                    'reason'            => __('Đăng nhập thất bại nhiều lần')
+                ]);
+            }
             if($getUser['login_attempts'] >= $config['limit_block_login_client']){
                 $User = new users();
                 $User->Banned($getUser['id'], __('Đăng nhập thất bại nhiều lần'));
@@ -72,8 +77,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     } else {
         if ($getUser['password'] != TypePassword($password)) {
-            // Rate limit
-            checkBlockIP('LOGIN', 5);
+            if($getUser['login_attempts'] >= $config['limit_block_ip_login_client']){
+                $CMSNT->insert('banned_ips', [
+                    'ip'                => myip(),
+                    'attempts'          => $getUser['login_attempts'],
+                    'create_gettime'    => gettime(),
+                    'banned'            => 1,
+                    'reason'            => __('Đăng nhập thất bại nhiều lần')
+                ]);
+            }
             if($getUser['login_attempts'] >= $config['limit_block_login_client']){
                 $User = new users();
                 $User->Banned($getUser['id'], __('Đăng nhập thất bại nhiều lần'));
@@ -140,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         'createdate'    => gettime(),
         'action'        => __('Đăng nhập thành công vào hệ thống')
     ]);
-    $new_token = generateUltraSecureToken();
+    $new_token = md5(random('0123456789qwertyuiopasdgjklzxcvbnm', 6).time());
     $CMSNT->update("users", [
         'login_attempts'    => 0,
         'ip'            => myip(),
@@ -150,17 +162,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         'device'    => $Mobile_Detect->getUserAgent()
     ], " `id` = '".$getUser['id']."' ");
 
-    setSecureCookie('user_login', $new_token);
-    setSecureCookie('user_agent', $Mobile_Detect->getUserAgent());
 
-    // Login Admin
-    if($getUser['admin'] > 0){
-        setSecureCookie('admin_login', $new_token);
-    }
-    // Login CTV
-    if($getUser['ctv'] > 0){
-        setSecureCookie('ctv_login', $new_token);
-    }
+    setcookie("token", $new_token, time() + $CMSNT->site('session_login'), "/");
+    $_SESSION['login'] = $new_token;
     die(json_encode([
         'status' => 'success',
         'msg'    => __('Đăng nhập thành công')

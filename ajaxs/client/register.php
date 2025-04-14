@@ -12,7 +12,7 @@ $Mobile_Detect = new Mobile_Detect();
 
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if ($CMSNT->site('status') != 1 && isSecureCookie('admin_login') != true) {
+    if ($CMSNT->site('status') != 1 && !isset($_SESSION['admin_login'])) {
         die(json_encode(['status' => 'error', 'msg' => __('Hệ thống đang bảo trì')]));
     }
     if (empty($_POST['username'])) {
@@ -66,13 +66,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     # Create the 2FA class
     $google2fa = new Google2FA();
-    $token = generateUltraSecureToken().$username;
+    $token = md5(random('QWERTYUIOPASDGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789', 6).time());
     $isCreate = $CMSNT->insert("users", [
         'token'         => $token,
         'username'      => $username,
         'email'         => $email,
         'password'      => TypePassword($password),
-        'ref_id'        => !empty($_SESSION['ref']) ? check_string($_SESSION['ref']) : 0,
+        'ref_id'        => !empty($_SESSION['ref']) ? $_SESSION['ref'] : 0,
         'ip'            => myip(),
         'device'        => $Mobile_Detect->getUserAgent(),
         'create_date'   => gettime(),
@@ -89,12 +89,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             'createdate'    => gettime(),
             'action'        => __('Thực hiện tạo tài khoản')
         ]);
-
-
-        // Lưu đăng nhập vào Cookie
-        setSecureCookie('user_login', $token);
-        setSecureCookie('user_agent', $Mobile_Detect->getUserAgent());
-
+        setcookie("token", $token, time() + $CMSNT->site('session_login'), "/");
+        $_SESSION['login'] = $token;
         /** SEND NOTI CHO ADMIN */
         $my_text = $CMSNT->site('register_notification');
         $my_text = str_replace('{domain}', $_SERVER['SERVER_NAME'], $my_text);

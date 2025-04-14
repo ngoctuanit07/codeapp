@@ -17,7 +17,15 @@ if($CMSNT->site('status_store_document') != 1){
     redirect(base_url('client/home'));
 }
 if ($CMSNT->site('sign_view_product') == 0) {
-    if (isset($_COOKIE['user_login'])) {
+    if (isset($_COOKIE["token"])) {
+        $getUser = $CMSNT->get_row(" SELECT * FROM `users` WHERE `token` = '" . check_string($_COOKIE['token']) . "' ");
+        if (!$getUser) {
+            header("location: " . BASE_URL('client/logout'));
+            exit();
+        }
+        $_SESSION['login'] = $getUser['token'];
+    }
+    if (isset($_SESSION['login'])) {
         require_once(__DIR__ . '/../../../models/is_user.php');
     }
 } else {
@@ -30,7 +38,7 @@ if($CMSNT->site('status_is_change_password') == 1){
     }
 }
 if ($CMSNT->site('is_update_phone') == 1) {
-    if (isset($_COOKIE['user_login']) && $getUser['phone'] == '') {
+    if (isset($_SESSION['login']) && $getUser['phone'] == '') {
         redirect(base_url('client/profile'));
     }
 }

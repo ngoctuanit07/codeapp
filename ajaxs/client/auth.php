@@ -13,7 +13,7 @@ use PragmaRX\Google2FAQRCode\Google2FA;
 
 
 if (isset($_POST['action'])) {
-    if ($CMSNT->site('status') != 1 && isSecureCookie('admin_login') != true) {
+    if ($CMSNT->site('status') != 1 && !isset($_SESSION['admin_login'])) {
         die(json_encode(['status' => 'error', 'msg' => __('The system is under maintenance, please come back later!')]));
     }
     if($_POST['action'] == 'ForgotPassword'){
@@ -44,7 +44,7 @@ if (isset($_POST['action'])) {
         if($CMSNT->site('pass_email_smtp') == ''){
             die(json_encode(['status' => 'error', 'msg' => __('SMTP chưa được cấu hình, vui lòng liên hệ Admin')]));
         }
-        $token = generateUltraSecureToken();
+        $token = md5(random('QWERTYUIOPASDFGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789', 6).time());
         $body = __('Nếu bạn yêu cầu đặt lại mật khẩu, vui lòng nhấp vào liên kết bên dưới để xác minh.').'<br>';
         $body .= '<a target="_blank" href="'.base_url('?action=reset-password&token='.$token).'">'.base_url('?action=reset-password&token='.$token).'</a><br>';
         $body .= '<p>'.__('Nếu không phải là bạn, vui lòng liên hệ ngay với Quản trị viên của bạn để được hỗ trợ về bảo mật.').'</p>';
@@ -60,8 +60,6 @@ if (isset($_POST['action'])) {
             'time_forgot_password'  => time()
         ], " `id` = '".$getUser['id']."' ");
         if ($isUpdate) {
-            // Rate limit
-            checkBlockIP('RESET_PASSWORD', 5);
             die(json_encode(['status' => 'success', 'msg' => __('Vui lòng kiểm tra Email của bạn để hoàn tất quá trình đặt lại mật khẩu')]));
         }
         die(json_encode(['status' => 'error', 'msg' => __('Có lỗi hệ thống, vui lòng liên hệ Developer')]));
@@ -104,7 +102,7 @@ if (isset($_POST['action'])) {
         $isUpdate = $CMSNT->update("users", [
             'token_forgot_password' => NULL,
             'password'  => isset($_POST['newpassword']) ? TypePassword(check_string($_POST['newpassword'])) : null,
-            'token'     => generateUltraSecureToken().$getUser['username']
+            'token'     => md5(random('QWERTYUIOPASDGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789', 12).time())
         ], " `token` = '".check_string($_POST['token'])."' ");
         if ($isUpdate) {
             $CMSNT->insert("logs", [

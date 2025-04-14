@@ -75,9 +75,6 @@ require_once(__DIR__.'/nav.php');
                 'createdate'    => gettime(),
                 'action'        => "Thêm IP (".check_string($_POST['ip']).") vào danh sách cho phép truy cập."
             ]);
-            /** SEND NOTI CHO ADMIN */
-            $my_text = '['.$getUser['username'].'] Thêm IP ('.check_string($_POST['ip']).') vào danh sách cho phép truy cập.';
-            sendMessAdmin($my_text);
             die('<script type="text/javascript">if(!alert("Thêm thành công !")){location.href = "";}</script>');
         } else {
             die('<script type="text/javascript">if(!alert("Thêm thất bại !")){window.history.back().location.reload();}</script>');

@@ -66,7 +66,7 @@ require_once(__DIR__.'/sidebar.php');
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <?php $i=0; foreach ($CMSNT->get_list("SELECT * FROM `orders` WHERE `fake` = 0 AND `buyer` = '".$getUser['id']."' AND `display` = 1  ORDER BY id DESC  ") as $row) {?>
+                                    <?php $i=0; foreach ($CMSNT->get_list("SELECT * FROM `orders` WHERE `fake` = 0 AND `buyer` = '".$getUser['id']."' AND `display` = 1  ORDER BY id DESC LIMIT 1000  ") as $row) {?>
                                     <tr>
                                         <td><?=$i++;?></td>
                                         <td><?=$row['trans_id'];?></td>

@@ -12,7 +12,7 @@ use PragmaRX\Google2FAQRCode\Google2FA;
 
 
 if (isset($_POST['action'])) {
-    if ($CMSNT->site('status') != 1 && isSecureCookie('admin_login') != true) {
+    if ($CMSNT->site('status') != 1 && !isset($_SESSION['admin_login'])) {
         die(json_encode(['status' => 'error', 'msg' => __('Hệ thống đang bảo trì định kỳ, vui lòng quay lại sau !')]));
     }
 

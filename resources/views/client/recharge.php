@@ -122,7 +122,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <img class="mb-3" src="<?=base_url($bank['image']);?>" width="200px"
                                             height="100px">
                                         <?php elseif($bank['short_name'] == 'MOMO'): ?>
-                                        <?=file_get_contents("https://api.web2m.com/api/qrmomo.php?amount=100000&phone=".$bank['accountNumber']."&noidung=".urlencode($CMSNT->site('prefix_autobank')).$getUser['id']."&size=300");?>
+                                        <?=file_get_contents("https://api.web2m.com/api/qrmomo.php?amount=0&phone=".$bank['accountNumber']."&noidung=".urlencode($CMSNT->site('prefix_autobank')).$getUser['id']."&size=300");?>
                                         <?php else:?>
                                         <img src="https://api.vietqr.io/<?=$bank['short_name'];?>/<?=$bank['accountNumber'];?>/0/<?=$CMSNT->site('prefix_autobank').$getUser['id'];?>/vietqr_net_2.jpg?accountName=<?=$bank['accountName'];?>"
                                             width="300px" />

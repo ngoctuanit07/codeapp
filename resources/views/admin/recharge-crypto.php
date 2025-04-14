@@ -70,9 +70,6 @@ require_once(__DIR__.'/nav.php');
                 'value' => $value
             ), " `name` = '$key' ");
         }
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Cập nhật cấu hình crypto.';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Lưu thành công !")){window.history.back().location.reload();}</script>');
     } 
 

@@ -46,9 +46,6 @@ if (isset($_POST['save'])) {
             'createdate'    => gettime(),
             'action'        => "Chỉnh sửa phần thưởng vòng quay (".$row['name']." ID ".$row['id'].")."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Cập nhật tuỳ chọn phần thưởng vòng quay ('.$row['name'].' ID '.$row['id'].').';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Lưu thành công !")){location.href = "";}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Lưu menu thất bại, vui lòng thử lại!")){window.history.back().location.reload();}</script>');

@@ -45,7 +45,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <td><?=$i++;?></td>
                                         <td><?=$row['action'];?></td>
                                         <td><?=$row['createdate'];?></td>
-                                        <td><?=$getUser['admin'] == 0 ? $row['ip'] : '***.**.**';?></td>
+                                        <td><?=$row['ip'];?></td>
                                         <td><?=$row['device'];?></td>
                                     </tr>
                                     <?php }?>

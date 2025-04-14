@@ -10,7 +10,15 @@ $body['header'] = '';
 $body['footer'] = '';
 
 if ($CMSNT->site('sign_view_product') == 0) {
-    if (isset($_COOKIE['user_login'])) {
+    if (isset($_COOKIE["token"])) {
+        $getUser = $CMSNT->get_row(" SELECT * FROM `users` WHERE `token` = '" . check_string($_COOKIE['token']) . "' ");
+        if (!$getUser) {
+            header("location: " . BASE_URL('client/logout'));
+            exit();
+        }
+        $_SESSION['login'] = $getUser['token'];
+    }
+    if (isset($_SESSION['login'])) {
         require_once(__DIR__ . '/../../../models/is_user.php');
     }
 } else {
@@ -23,7 +31,7 @@ if($CMSNT->site('status_is_change_password') == 1){
     }
 }
 if ($CMSNT->site('is_update_phone') == 1) {
-    if (isset($_COOKIE['user_login']) && $getUser['phone'] == '') {
+    if (isset($_SESSION['login']) && $getUser['phone'] == '') {
         redirect(base_url('client/profile'));
     }
 }
@@ -231,47 +239,47 @@ require_once(__DIR__ . '/sidebar.php');
 </div>
 
 
-
+<?php
+if(isset($_POST['hide_notice_popup'])){
+    $_SESSION['hide_notice_popup'] = 1;
+    die('<script type="text/javascript">window.history.back().location.reload();</script>');
+}
+?>
 <?php if($CMSNT->site('notice_popup') != ''): ?>
+<?php if(!isset($_SESSION['hide_notice_popup'])):?>
 
-<div class="onboarding-modal modal fade animated" id="modal_notification" role="dialog" >
+<div class="onboarding-modal modal fade animated" id="notice_popup" role="dialog" style="display: none;">
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title"><i class="fa-solid fa-bell"></i> <?=__('Thông báo');?></h5>
+                <h5 class="modal-title"><?=__('Thông báo');?></h5>
             </div>
+            <form action="" method="POST">
                 <div class="modal-body">
                      <?=$CMSNT->site('notice_popup');?>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-primary btn-sm" id="dontShowAgainBtn" data-dismiss="modal"><i class="fa-solid fa-eye-slash"></i> <?=__('Không hiển thị lại');?></button>
-                    <button type="button" class="btn btn-danger btn-sm" data-dismiss="modal"><i class="fa-solid fa-xmark"></i> <?=__('Đóng');?></button>
+                    <button type="submit" class="btn btn-primary" name="hide_notice_popup"><?=__('Không hiển thị lại');?></button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><?=__('Đóng');?></button>
                 </div>
+            </form>
         </div>
     </div>
 </div>
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    var modal = document.getElementById('modal_notification');
-    var dontShowAgainBtn = document.getElementById('dontShowAgainBtn');
-    var modalClosedTime = localStorage.getItem('modalClosedTime');
-
-    // Nếu modalClosedTime chưa được lưu hoặc đã quá 2 giờ, hiển thị modal
-    if (!modalClosedTime || (Date.now() - parseInt(modalClosedTime) > 2 * 60 * 60 * 1000)) {
-        var bootstrapModal = new bootstrap.Modal(modal);
-        bootstrapModal.show();
-    }
-
-    // Lưu thời gian khi modal được đóng khi người dùng click vào nút "Không hiển thị lại" và ẩn modal
-    dontShowAgainBtn.addEventListener('click', function() {
-        localStorage.setItem('modalClosedTime', Date.now());
-        var bootstrapModal = bootstrap.Modal.getInstance(modal);
-        bootstrapModal.hide();
-    });
+<script type="text/javascript">
+$(document).ready(function() {
+    setTimeout(e => {
+        ShowModal_notice_popup()
+    }, 0)
 });
+
+function ShowModal_notice_popup() {
+    $('#notice_popup').modal({
+        keyboard: true,
+        show: true
+    });
+}
 </script>
 <?php endif?>
-
-
-
+<?php endif?>
 <?php require_once(__DIR__ . '/footer.php'); ?>

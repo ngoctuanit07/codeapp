@@ -6,377 +6,9 @@ if (!defined('IN_SITE')) {
 $CMSNT = new DB;
 date_default_timezone_set($CMSNT->site('timezone'));
 
-$session_login = $CMSNT->site('session_login');
-ini_set('session.gc_maxlifetime', $session_login);
-ini_set('session.cookie_lifetime', $session_login);
-ini_set('session.cookie_secure', true); // Chỉ gửi cookie qua HTTPS
-ini_set('session.cookie_httponly', true); // Chặn truy cập cookie từ JavaScript
-session_start();
-
 if($CMSNT->get_row(" SELECT * FROM `banned_ips` WHERE `ip` = '".myip()."' AND `banned` = 1 ")){
     require_once(__DIR__.'/../resources/views/common/block-ip.php');
     exit();
-}
-
-function insert_options($name, $value){
-    global $CMSNT;
-    if (!$CMSNT->get_row("SELECT * FROM `settings` WHERE `name` = '$name' ")) {
-        $CMSNT->insert("settings", [
-            'name'  => $name,
-            'value' => $value
-        ]);
-    }
-}
-
-//
-$host = $_SERVER['HTTP_HOST'] ?? '';
-$host = check_string($host);
-$domains = $host . ',' . 'www.' . $host;
-insert_options('domains', $domains);
-//
-
-
-function isSecureCookie($name){
-    if(isset($_COOKIE[$name])){
-        return true;
-    }else{
-        false;
-    }
-}
-function setSecureCookie($name, $value){
-    global $CMSNT;
-    return setcookie($name, $value, time() + $CMSNT->site('session_login'), "/", "", false, true);
-}
-
-
-function checkBlockIP($type, $time = 15){
-    global $CMSNT;
-    $ip_address = myip();
-    if($type == 'API'){
-        $reason = 'Request API sai API KEY quá nhiều lần';
-        $max_attempts = 10;  // Số lần thử tối đa
-    } elseif($type == 'LOGIN'){
-        $reason = 'Đăng nhập thất bại quá nhiều lần';
-        $max_attempts = 10;  // Số lần thử tối đa
-    } elseif($type == 'ADMIN'){
-        $reason = 'Đăng nhập Admin thất bại quá nhiều lần';
-        $max_attempts = 10;  // Số lần thử tối đa
-    } elseif($type == 'RESET_PASSWORD'){
-        $reason = 'Spam khôi phục mật khẩu';
-        $max_attempts = 10;  // Số lần thử tối đa
-    } elseif($type == 'OTP'){
-        $reason = 'Spam OTP';
-        $max_attempts = 10;  // Số lần thử tối đa
-    }elseif($type == '2FA'){
-        $reason = 'Spam 2FA';
-        $max_attempts = 10;  // Số lần thử tối đa
-    } elseif($type == 'PAYMENT'){
-        $reason = 'Spam Tạo hóa đơn nạp tiền quá nhiều lần';
-        $max_attempts = 10;  // Số lần thử tối đa
-    } elseif($type == 'SCAN'){
-        $reason = 'SCAN mò Token quá nhiều lần';
-        $max_attempts = 10;  // Số lần thử tối đa
-    } else{
-        $reason = 'Spam Request quá nhiều lần';
-        $max_attempts = 10;  // Số lần thử tối đa
-    }
-    // Thêm log thất bại vào bảng failed_attempts
-    $CMSNT->insert("failed_attempts", [
-        'ip_address'        => $ip_address,
-        'attempts'          => 1,
-        'type'              => $type,
-        'create_gettime'    => gettime()
-    ]);
-    // Đếm số lần thất bại trong 15 phút gần nhất
-    $attempts = $CMSNT->get_row("SELECT COUNT(*) as total FROM `failed_attempts` 
-        WHERE `ip_address` = '$ip_address' 
-        AND `type` = '$type'
-        AND `create_gettime` >= DATE_SUB(NOW(), INTERVAL $time MINUTE)");
-        
-    // Nếu số lần thất bại vượt quá giới hạn
-    if ($attempts['total'] >= $max_attempts) {
-        // Thêm vào danh sách block
-        $CMSNT->insert('banned_ips', [
-            'ip' => $ip_address,
-            'attempts' => $attempts['total'],
-            'create_gettime' => gettime(),
-            'banned' => 1,
-            'reason' => __($reason)
-        ]);
-        // Xóa tất cả log thất bại của IP này
-        $CMSNT->remove('failed_attempts', " `ip_address` = '$ip_address' AND `type` = '$type'");
-        return json_encode(['status' => 'error', 'msg' => __('IP của bạn đã bị khóa. Vui lòng thử lại sau.')]);
-    }
-}
-
-function insert_ip_block($ip, $reason){
-    global $CMSNT;
-    if(!$CMSNT->get_row(" SELECT * FROM `banned_ips` WHERE `ip` = '$ip' ")){
-        $CMSNT->insert('banned_ips', [
-            'ip'        => check_string($ip),
-            'attempts'  => 5,
-            'banned'    => 1,
-            'reason'    => check_string($reason),
-            'create_gettime'    => gettime()
-        ]);
-    }
-    return true;
-}
-function checkAccessAttempts($max_attempts = 5){
-    global $CMSNT;
-    $ip_address = myip();
-    $attempt = $CMSNT->get_row("SELECT * FROM `failed_attempts` WHERE `ip_address` = '$ip_address' AND `type` = 'Spam Request' ");
-    // Kiểm tra xem IP đã vượt quá số lần thử và trong khoảng thời gian lockout chưa
-    if ($attempt && $attempt['attempts'] >= $max_attempts) {
-        // Khóa IP vào bảng banned_ips
-        $CMSNT->insert('banned_ips', [
-            'ip'                => $ip_address,
-            'attempts'          => $attempt['attempts'],
-            'create_gettime'    => gettime(),
-            'banned'            => 1,
-            'reason'            => __('Spam Request')
-        ]);
-        // Xóa IP ra khỏi bảng failed_attempts sau khi đã block
-        $CMSNT->remove('failed_attempts', " `ip_address` = '$ip_address' ");
-        return true;
-    }
-    // Nếu chưa đến mức lockout, tăng số lần thử
-    if ($attempt) {
-        // Cập nhật số lần thất bại
-        $CMSNT->cong('failed_attempts', 'attempts', 1, " `ip_address` = '$ip_address' ");
-    } else {
-        // Thêm bản ghi mới cho IP này
-        $CMSNT->insert("failed_attempts", [
-            'ip_address'    => $ip_address,
-            'attempts'      => 1,
-            'type'          => 'Spam Request',
-            'create_gettime'=> gettime()
-        ]);
-    }
-    return true;
-}
-
-function generateUltraSecureToken($length = 32) {
-    $randomBytes = random_bytes($length);
-    return bin2hex($randomBytes);
-}
-
-function checkWhiteDomain($domain){
-    $domain_white = [
-        'muafb.net',
-        'trongclone.com',
-        'uyenclone.com',
-        'shopviafb24h.com',
-        'storerobloxvn.com',
-        'fptvclone.com',
-        'nksport.vn',
-        'sellfb247.com',
-        'accrunner.com',
-        'adsygo.com',
-        '250fb.com',
-        'funcatz.info',
-        'cuongmkt.com',
-        'blackacc.com',
-        'shop.kmedia.vn',
-        'wow1shop.vn',
-        'muaads.com.vn'.
-        'anyfb.com'
-    ];
-    foreach($domain_white as $row){
-        if($row == $domain){
-            return true;
-        }
-    }
-    return false;
-}
-function CMSNT_check_license($licensekey, $localkey='') {
-    global $config;
-    $whmcsurl = 'https://client.cmsnt.co/';
-    $licensing_secret_key = $config['project'];
-    $localkeydays = 15;
-    $allowcheckfaildays = 5;
-    $check_token = time() . md5(mt_rand(100000000, mt_getrandmax()) . $licensekey);
-    $checkdate = date("Ymd");
-    $domain = $_SERVER['SERVER_NAME'];
-    $usersip = isset($_SERVER['SERVER_ADDR']) ? $_SERVER['SERVER_ADDR'] : $_SERVER['LOCAL_ADDR'];
-    $dirpath = dirname(__FILE__);
-    $verifyfilepath = 'modules/servers/licensing/verify.php';
-    $localkeyvalid = false;
-    if ($localkey) {
-        $localkey = str_replace("\n", '', $localkey); # Remove the line breaks
-        $localdata = substr($localkey, 0, strlen($localkey) - 32); # Extract License Data
-        $md5hash = substr($localkey, strlen($localkey) - 32); # Extract MD5 Hash
-        if ($md5hash == md5($localdata . $licensing_secret_key)) {
-            $localdata = strrev($localdata); # Reverse the string
-            $md5hash = substr($localdata, 0, 32); # Extract MD5 Hash
-            $localdata = substr($localdata, 32); # Extract License Data
-            $localdata = base64_decode($localdata);
-            $localkeyresults = json_decode($localdata, true);
-            $originalcheckdate = $localkeyresults['checkdate'];
-            if ($md5hash == md5($originalcheckdate . $licensing_secret_key)) {
-                $localexpiry = date("Ymd", mktime(0, 0, 0, date("m"), date("d") - $localkeydays, date("Y")));
-                if ($originalcheckdate > $localexpiry) {
-                    $localkeyvalid = true;
-                    $results = $localkeyresults;
-                    $validdomains = explode(',', $results['validdomain']);
-                    if (!in_array($_SERVER['SERVER_NAME'], $validdomains)) {
-                        $localkeyvalid = false;
-                        $localkeyresults['status'] = "Invalid";
-                        $results = array();
-                    }
-                    $validips = explode(',', $results['validip']);
-                    if (!in_array($usersip, $validips)) {
-                        $localkeyvalid = false;
-                        $localkeyresults['status'] = "Invalid";
-                        $results = array();
-                    }
-                    $validdirs = explode(',', $results['validdirectory']);
-                    if (!in_array($dirpath, $validdirs)) {
-                        $localkeyvalid = false;
-                        $localkeyresults['status'] = "Invalid";
-                        $results = array();
-                    }
-                }
-            }
-        }
-    }
-    if (!$localkeyvalid) {
-        $responseCode = 0;
-        $postfields = array(
-            'licensekey' => $licensekey,
-            'domain' => $domain,
-            'ip' => $usersip,
-            'dir' => $dirpath,
-        );
-        if ($check_token) $postfields['check_token'] = $check_token;
-        $query_string = '';
-        foreach ($postfields AS $k=>$v) {
-            $query_string .= $k.'='.urlencode($v).'&';
-        }
-        if (function_exists('curl_exec')) {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, $whmcsurl . $verifyfilepath);
-            curl_setopt($ch, CURLOPT_POST, 1);
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $query_string);
-            curl_setopt($ch, CURLOPT_TIMEOUT, 4);
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
-            $data = curl_exec($ch);
-            $responseCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-        } else {
-            $responseCodePattern = '/^HTTP\/\d+\.\d+\s+(\d+)/';
-            $fp = @fsockopen($whmcsurl, 80, $errno, $errstr, 5);
-            if ($fp) {
-                $newlinefeed = "\r\n";
-                $header = "POST ".$whmcsurl . $verifyfilepath . " HTTP/1.0" . $newlinefeed;
-                $header .= "Host: ".$whmcsurl . $newlinefeed;
-                $header .= "Content-type: application/x-www-form-urlencoded" . $newlinefeed;
-                $header .= "Content-length: ".@strlen($query_string) . $newlinefeed;
-                $header .= "Connection: close" . $newlinefeed . $newlinefeed;
-                $header .= $query_string;
-                $data = $line = '';
-                @stream_set_timeout($fp, 20);
-                @fputs($fp, $header);
-                $status = @socket_get_status($fp);
-                while (!@feof($fp)&&$status) {
-                    $line = @fgets($fp, 1024);
-                    $patternMatches = array();
-                    if (!$responseCode
-                        && preg_match($responseCodePattern, trim($line), $patternMatches)
-                    ) {
-                        $responseCode = (empty($patternMatches[1])) ? 0 : $patternMatches[1];
-                    }
-                    $data .= $line;
-                    $status = @socket_get_status($fp);
-                }
-                @fclose ($fp);
-            }
-        }
-        if ($responseCode != 200) {
-            $localexpiry = date("Ymd", mktime(0, 0, 0, date("m"), date("d") - ($localkeydays + $allowcheckfaildays), date("Y")));
-            if ($originalcheckdate > $localexpiry) {
-                $results = $localkeyresults;
-            } else {
-                $results = array();
-                $results['status'] = "Invalid";
-                $results['description'] = "Remote Check Failed";
-                return $results;
-            }
-        } else {
-            preg_match_all('/<(.*?)>([^<]+)<\/\\1>/i', $data, $matches);
-            $results = array();
-            foreach ($matches[1] AS $k=>$v) {
-                $results[$v] = $matches[2][$k];
-            }
-        }
-        if (!is_array($results)) {
-            die("Invalid License Server Response");
-        }
-        if (isset($results['md5hash'])) {
-            if ($results['md5hash'] != md5($licensing_secret_key . $check_token)) {
-                $results['status'] = "Invalid";
-                $results['description'] = "MD5 Checksum Verification Failed";
-                return $results;
-            }
-        }
-        if ($results['status'] == "Active") {
-            $results['checkdate'] = $checkdate;
-            $data_encoded = json_encode($results);
-            $data_encoded = base64_encode($data_encoded);
-            $data_encoded = md5($checkdate . $licensing_secret_key) . $data_encoded;
-            $data_encoded = strrev($data_encoded);
-            $data_encoded = $data_encoded . md5($data_encoded . $licensing_secret_key);
-            $data_encoded = wordwrap($data_encoded, 80, "\n", true);
-            $results['localkey'] = $data_encoded;
-        }
-        $results['remotecheck'] = true;
-    }
-    unset($postfields,$data,$matches,$whmcsurl,$licensing_secret_key,$checkdate,$usersip,$localkeydays,$allowcheckfaildays,$md5hash);
-    return $results;
-}
-function checkLicenseKey($licensekey){
-    $results = CMSNT_check_license($licensekey, '');
-    if($results['status'] == "Active"){   
-        $results['msg'] = "Giấy phép hợp lệ";
-        $results['status'] = true;
-        return $results;
-    }
-    if($results['status'] == "Invalid"){   
-        $results['msg'] = "Giấy phép kích hoạt không hợp lệ";
-        $results['status'] = false;
-        return $results;
-    }
-    if($results['status'] == "Expired"){   
-        $results['msg'] = "Giấy phép mã nguồn đã hết hạn, vui lòng gia hạn ngay";
-        $results['status'] = false;
-        return $results;
-    }
-    if($results['status'] == "Suspended"){   
-        $results['msg'] = "Giấy phép của bạn đã bị tạm ngưng";
-        $results['status'] = false;
-        return $results;
-    }
-    $results['msg'] = "Không tìm thấy giấy phép này trong hệ thống";
-    $results['status'] = false;
-    return $results;
-}
-function buy_API_SHOPCLONE7($domain, $username, $password, $id_api, $amount){
-    $curl = curl_init();
-    curl_setopt_array($curl, array(
-      CURLOPT_URL => $domain.'ajaxs/client/product.php',
-      CURLOPT_RETURNTRANSFER => true,
-      CURLOPT_ENCODING => '',
-      CURLOPT_MAXREDIRS => 10,
-      CURLOPT_TIMEOUT => 0,
-      CURLOPT_FOLLOWLOCATION => true,
-      CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-      CURLOPT_CUSTOMREQUEST => 'POST',
-      CURLOPT_POSTFIELDS => array('action' => 'buyProduct','id' => $id_api,'amount' => $amount,'coupon' => $username,'api_key' => $password),
-      CURLOPT_HTTPHEADER => array(),
-    ));
-    $response = curl_exec($curl);
-    curl_close($curl);
-    return $response; 
 }
 function display_mua_xu($data){
     if ($data == 1) {
@@ -415,13 +47,13 @@ function generate_csrf_token() {
     return $_SESSION['csrf_token'];
 }
 function buy_API_15($domain, $username, $password, $id_api, $amount, $trans_id){
-    return curl_get2($domain.'api/v1/buy.php?apikey='.$password.'&account_type='.$id_api.'&quantity='.$amount);
+    return curl_get($domain.'api/v1/buy.php?apikey='.$password.'&account_type='.$id_api.'&quantity='.$amount);
 }
 function balance_API_15($domain, $username, $password){
-    return curl_get2($domain.'api/v1/login.php?password='.$password);
+    return curl_get($domain.'api/v1/login.php?username='.$username.'&password='.$password);
 }
 function listProduct_API_15($domain, $password){
-    return curl_get2($domain.'api/v1/account.php?apikey='.$password);
+    return curl_get($domain.'api/v1/account.php?apikey='.$password);
 }
 function getOrder_API_14($domain, $username, $password, $order_id){
     $curl = curl_init();
@@ -532,38 +164,19 @@ function display_invoice($status)
         return '<b style="color:yellow;">Khác</b>';
     }
 }
- 
-
-function buy_API_23($domain, $password, $id_api, $amount){
-    $curl = curl_init();
-    curl_setopt_array($curl, array(
-    CURLOPT_URL => $domain.base64_decode('YXBpL2NyZWF0ZV9vcmRlcg=='),
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_ENCODING => '',
-    CURLOPT_MAXREDIRS => 10,
-    CURLOPT_TIMEOUT => 0,
-    CURLOPT_FOLLOWLOCATION => true,
-    CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-    CURLOPT_CUSTOMREQUEST => 'POST',
-    CURLOPT_POSTFIELDS =>'{
-    "service": "'.$id_api.'",
-    "quantity": '.$amount.',
-    "api_key": "'.$password.'"
-    }',
-    CURLOPT_HTTPHEADER => array(
-        'Content-Type: application/json'
-    ),
-    ));
-
-    $response = curl_exec($curl);
-
-    curl_close($curl);
-    return $response;
+function base_url_admin($url = '')
+{
+    $a = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER["HTTP_HOST"];
+    if ($a == 'http://localhost') {
+        $a = 'http://localhost/CMSNT.CO/SHOPCLONE6';
+    }
+    return $a.'?module=admin&action='.$url;
 }
+
 function getOrder_API_13($domain, $username, $password, $order_id){
     $curl = curl_init();
     curl_setopt_array($curl, array(
-      CURLOPT_URL => $domain.base64_decode('YXBpL09yZGVyL0dldFB1cmNoYXNlZEFjY291bnRzP09yZGVySWQ9').$order_id.'&Custom_UserId='.$username,
+      CURLOPT_URL => $domain.'api/Order/GetPurchasedAccounts?OrderId='.$order_id.'&Custom_UserId='.$username,
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_ENCODING => '',
       CURLOPT_MAXREDIRS => 10,
@@ -584,7 +197,7 @@ function getOrder_API_13($domain, $username, $password, $order_id){
 function buy_API_13($domain, $username, $password, $id_api, $amount, $trans_id){
     $curl = curl_init();
     curl_setopt_array($curl, array(
-      CURLOPT_URL => $domain.base64_decode('YXBpL1NlcnZpY2UvQnV5'),
+      CURLOPT_URL => $domain.'api/Service/Buy',
       CURLOPT_RETURNTRANSFER => true,
       CURLOPT_ENCODING => '',
       CURLOPT_MAXREDIRS => 10,
@@ -984,7 +597,7 @@ function balance_API_4($domain, $username, $password){
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 10,
+        CURLOPT_TIMEOUT => 0,
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => 'POST',
@@ -1004,7 +617,7 @@ function balance_API_1($domain, $token){
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_ENCODING => '',
         CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 5,
+        CURLOPT_TIMEOUT => 0,
         CURLOPT_FOLLOWLOCATION => true,
         CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
         CURLOPT_CUSTOMREQUEST => 'POST',
@@ -1077,7 +690,7 @@ function addRef($user_id, $price, $note = ''){
 }
 function sendMessAdmin($my_text){
     $CMSNT = new DB;
-    if($my_text != ''){
+    if(checkAddon(112246) == true && $my_text != ''){
         if($CMSNT->site('type_notification') == 'telegram'){
             return sendMessTelegram($my_text);
         }
@@ -1275,7 +888,7 @@ function checkCoupon($coupon, $user_id, $total_money)
     // check coupon có tồn tại hay không
     if ($coupon = $CMSNT->get_row("SELECT * FROM `coupons` WHERE `code` = '".check_string($coupon)."' AND `min` <= $total_money AND `max` >= $total_money AND `used` < `amount` ")) {
         // chek số lượng còn hay không
-        if ($CMSNT->num_rows(" SELECT * FROM coupon_used WHERE `coupon_id` = '".$coupon['id']."' ") < $coupon['amount']) {
+        if ($coupon['used'] < $coupon['amount']) {
             // check đã dùng hay chưa
             if (!$CMSNT->get_row("SELECT * FROM `coupon_used` WHERE `coupon_id` = '".$coupon['id']."' AND `user_id` = '".$user_id."' ")) {
                 return $coupon['discount'];
@@ -1417,78 +1030,18 @@ function get_url(){
     }         
     $url.= $_SERVER['HTTP_HOST'];   
     $url.= $_SERVER['REQUEST_URI'];    
-    return check_string($url);  
+    return $url;  
 }
 // Hàm tạo URL
-function base_url($url = '') {
-    global $CMSNT;
-
-    // Lấy danh sách domains từ database
-    $allowed_domains = array_map('trim', explode(',', $CMSNT->site('domains'))); // Làm sạch danh sách domains
-
-    // Lấy giá trị HTTP_HOST
-    $host = $_SERVER['HTTP_HOST'] ?? '';
-
-    // Kiểm tra tính hợp lệ của HTTP_HOST
-    if (!preg_match('/^[a-zA-Z0-9\-\.]+$/', $host)) {
-        $host = $allowed_domains[0]; // Domain mặc định nếu HTTP_HOST không hợp lệ
+function base_url($url = '')
+{
+    global $domain_block;
+    $a = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://" . $_SERVER["HTTP_HOST"];
+    if ($a == 'http://localhost') {
+        $a = 'http://localhost/CMSNT.CO/SHOPCLONE6';
     }
-
-    // Nếu HTTP_HOST không nằm trong danh sách, sử dụng domain đầu tiên
-    if (!in_array($host, $allowed_domains)) {
-        $host = $allowed_domains[0]; // Domain mặc định
-    }
-
-    // Xác định giao thức (HTTPS hoặc HTTP)
-    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
-
-    // Xử lý localhost riêng (nếu cần)
-    if ($host === 'localhost') {
-        $base = 'http://localhost/CMSNT.CO/SHOPCLONE6';
-    } else {
-        $base = $protocol . '://' . $host;
-    }
-
-    // Trả về URL đầy đủ
-    return check_string($base) . '/' . ltrim($url, '/');
+    return $a.'/'.$url;
 }
-
-function base_url_admin($url = '') {
-    global $CMSNT;
-
-    // Lấy danh sách domains từ database
-    $allowed_domains = array_map('trim', explode(',', $CMSNT->site('domains'))); // Làm sạch danh sách domains
-
-    // Lấy giá trị HTTP_HOST
-    $host = $_SERVER['HTTP_HOST'] ?? '';
-
-    // Kiểm tra tính hợp lệ của HTTP_HOST
-    if (!preg_match('/^[a-zA-Z0-9\-\.]+$/', $host)) {
-        $host = $allowed_domains[0]; // Domain mặc định nếu HTTP_HOST không hợp lệ
-    }
-
-    // Nếu HTTP_HOST không nằm trong danh sách, sử dụng domain đầu tiên
-    if (!in_array($host, $allowed_domains)) {
-        $host = $allowed_domains[0]; // Domain mặc định
-    }
-
-    // Xác định giao thức (HTTPS hoặc HTTP)
-    $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https' : 'http';
-
-    // Xử lý localhost riêng (nếu cần)
-    if ($host === 'localhost') {
-        $base = 'http://localhost/CMSNT.CO/SHOPCLONE6';
-    } else {
-        $base = $protocol . '://' . $host;
-    }
-
-    // Kiểm tra và bảo toàn giá trị URL
-    $final_url = rtrim(check_string($base), '/') . '/?module=admin&action=' . $url;
-
-    // Trả về URL đầy đủ
-    return $final_url;
-}
-
 // mã hoá password
 function TypePassword($password)
 {
@@ -1583,33 +1136,20 @@ function format_currency($amount){
     return format_cash($amount).'đ';
 }
 //show ip
-function myip() {
-    // Địa chỉ IP mặc định (REMOTE_ADDR)
-    $ip_address = $_SERVER['REMOTE_ADDR'] ?? '';
-
-    // Kiểm tra các header khác (nếu có)
-    if (!empty($_SERVER['HTTP_CLIENT_IP']) && filter_var($_SERVER['HTTP_CLIENT_IP'], FILTER_VALIDATE_IP)) {
+function myip()
+{
+    if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
         $ip_address = $_SERVER['HTTP_CLIENT_IP'];
     } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-        // Lấy danh sách IP từ X-Forwarded-For
-        $ip_list = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
-        $ip_list = array_map('trim', $ip_list); // Loại bỏ khoảng trắng thừa
-
-        // Lấy địa chỉ IP đầu tiên hợp lệ
-        foreach ($ip_list as $ip) {
-            if (filter_var($ip, FILTER_VALIDATE_IP)) {
-                $ip_address = $ip;
-                break;
-            }
-        }
+        $ip_address = $_SERVER['HTTP_X_FORWARDED_FOR'];
+    } else {
+        $ip_address = $_SERVER['REMOTE_ADDR'];
     }
-    // Kiểm tra và trả về địa chỉ IP đã xác thực
-    return filter_var($ip_address, FILTER_VALIDATE_IP) ? $ip_address : '0.0.0.0';
+    if(isset(explode(',', $ip_address)[1])){
+        return explode(',', $ip_address)[0];
+    }
+    return check_string($ip_address);
 }
-// function myip(){
-//     $ip_address = $_SERVER['REMOTE_ADDR'];
-//     return check_string($ip_address);
-// }
 // lọc input
 function check_string($data)
 {
@@ -1675,7 +1215,7 @@ function curl_get($url){
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_URL, $url);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-    curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 0);
     curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, 0);
     curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, 0);
     $data = curl_exec($ch);
@@ -2280,11 +1820,6 @@ function pagination($url, $start, $total, $kmess)
     return implode('', $out);
 }
 
-// function check_path($path){
-//     return preg_replace("/[^A-Za-z0-9_-]/", '', check_string($path));
-// }
-function check_path($input) {
-    $input = preg_replace('/[^a-zA-Z0-9_\-\/]/', '', $input); // Chỉ cho phép chữ cái, số, gạch dưới, gạch ngang
-    $input = str_replace(['../', './'], '', $input); // Loại bỏ ký tự truy cập lùi thư mục
-    return check_string($input);
+function check_path($path){
+    return preg_replace("/[^A-Za-z0-9_-]/", '', check_string($path));
 }

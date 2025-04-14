@@ -69,9 +69,6 @@ if (isset($_POST['SaveCurrency'])) {
             'createdate'    => gettime(),
             'action'        => "Chỉnh sửa tiền tệ (".$_POST['lang'].") vào hệ thống."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Cập nhật tiền tệ ('.$row['name'].' ID '.$row['id'].').';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Thêm thành công !")){location.href = "'.BASE_URL('admin/currency-list').'";}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Thêm thất bại !")){window.history.back().location.reload();}</script>');

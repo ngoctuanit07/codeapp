@@ -45,7 +45,7 @@
             
 
             // CURL LẤY CATEGORIES
-            $data = curl_get2($website['domain'].'v1/public/productcategory/list');
+            $data = curl_get($website['domain'].'v1/public/productcategory/list');
             $data = json_decode($data, true);
             if(isset($data['data'])){
                 foreach($data['data']['data'] as $category){
@@ -78,7 +78,7 @@
                         $id_api = $CMSNT->get_row(" SELECT * FROM `categories` WHERE `id_api` = '".check_string($account['category'])."' AND `id_connect_api` = '".$website['id']."' ")['id'];
                         $isInsert = $CMSNT->insert('products', [
                             'user_id'           => $website['user_id'],
-                            'category_id'       => !empty($id_api) ? $id_api : 0,
+                            'category_id'       => $id_api,
                             'id_api'            => check_string($account['id']),
                             'id_connect_api'    => $website['id'],
                             'name'              => $product_name,

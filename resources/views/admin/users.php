@@ -378,13 +378,13 @@ $listUsers = $CMSNT->get_list("SELECT * FROM `users` WHERE $where $order_by LIMI
                                                         type="button">
                                                         <i class="fas fa-trash mr-1"></i><span class="">Delete</span>
                                                     </button> -->
-                                                    <!-- <a aria-label=""
+                                                    <a aria-label=""
                                                         href="<?=base_url('admin/login-user/'.$row['id']);?>"
                                                         style="color:white;" target="_blank"
                                                         class="btn btn-primary btn-sm btn-icon-left m-b-10"
                                                         type="button">
                                                         <i class="fas fa-sign-in mr-1"></i><span class="">Login</span>
-                                                    </a> -->
+                                                    </a>
                                                 </td>
                                             </tr>
                                             <?php }?>

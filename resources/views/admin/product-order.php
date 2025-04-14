@@ -366,8 +366,7 @@ function confirmRefund(id, transid){
                 dataType: "JSON",
                 data: {
                     action: "refundOrder",
-                    id: id,
-                    transid: transid
+                    id: id
                 },
                 success: function(respone) {
                     if (respone.status == 'success') {

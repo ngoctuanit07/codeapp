@@ -76,15 +76,11 @@ $currentDate = date("Y-m-d");
                     <li>Quý khách vui lòng tham gia nhóm Zalo của CMSNT để nắm bắt thông tin cập nhật chi tiết của sản
                         phẩm, luôn luôn nhận được các thông báo mới nhất về CMSNT để tối ưu nhất trong quá trình hoạt
                         động.</li>
-                        <li>Nhóm Zalo: <?=$CMSNT->site('status_demo') == 1 ? '<strong>chỉ áp dụng khi mua website chính hãng tại CMSNT</strong>' : '<a class="text-primary" href="https://zalo.me/g/idapcx933" target="_blank">[CMSNT]
-                        Changelog - Notification</a>';?></li>
-                <li>Nhóm Zalo: <?=$CMSNT->site('status_demo') == 1 ? '<strong>chỉ áp dụng khi mua website chính hãng tại CMSNT</strong>' : '<a class="text-primary" href="https://zalo.me/g/eululb377" target="_blank">[CMSNT] Trao
-                        đổi API - Suppliers</a>';?></li>
-                <li>Nhóm Telegram: <?=$CMSNT->site('status_demo') == 1 ? '<strong>chỉ áp dụng khi mua website chính hãng tại CMSNT</strong>' : '<a class="text-primary" href="https://t.me/+LVON7y2BKWU3ZDY9" target="_blank">[CMSNT]
-                        Tìm kiếm API - Suppliers</a>';?></li>
-                <li>Kênh Telegram: <?=$CMSNT->site('status_demo') == 1 ? '<strong>chỉ áp dụng khi mua website chính hãng tại CMSNT</strong>' : '<a class="text-primary" href="https://t.me/cmsntco" target="_blank">[CMSNT] Changelog - Notification</a>';?></li>
-                    <li>Inbox ngay cho CMSNT để được duyệt tham gia nhóm Zalo, chỉ áp dụng cho quý khách hàng mua chính
-                        chủ
+                    <li>Quý khách tham gia nhóm nhận thông tin thông báo tại đây: <a target="_blank"
+                            href="https://zalo.me/g/idapcx933">https://zalo.me/g/idapcx933</a></li>
+                    <li>Quý khách tham gia nhóm tìm kiếm nguồn tại đây: <a target="_blank"
+                            href="https://zalo.me/g/eululb377">https://zalo.me/g/eululb377</a></li>
+                    <li>Inbox ngay cho CMSNT để được duyệt tham gia nhóm, chỉ áp dụng cho quý khách hàng mua chính chủ
                         tại <a target="_blank" href="https://cmsnt.vn/">CMSNT.CO - CMSNT.VN</a></li>
                     <li>Chúng tôi chấm dứt hỗ trợ nếu phát hiện bạn crack mã nguồn, addon của chúng tôi để dùng lậu nó.
                     </li>
@@ -272,7 +268,7 @@ $currentDate = date("Y-m-d");
                                 </p>
                                 <p class="d-flex flex-column text-right">
                                     <span class="font-weight-bold">
-                                        <?=format_currency($CMSNT->get_row("SELECT SUM(`pay`) FROM `orders` WHERE `fake` = 0 AND `create_date` LIKE '%".date("Y-m-d")."%' ")['SUM(`pay`)']);?>
+                                        <?=format_currency($CMSNT->get_row("SELECT SUM(`pay`) FROM `orders` WHERE `fake` = 0 AND `create_date` >= DATE(NOW()) AND `create_date` < DATE(NOW()) + INTERVAL 1 DAY ")['SUM(`pay`)']);?>
                                     </span>
                                     <span class="text-muted">DOANH THU ĐƠN HÀNG</span>
                                 </p>
@@ -284,7 +280,7 @@ $currentDate = date("Y-m-d");
                                 </p>
                                 <p class="d-flex flex-column text-right">
                                     <span class="font-weight-bold">
-                                        <?=format_cash($CMSNT->get_row("SELECT COUNT(id) FROM `accounts` WHERE `buyer` IS NOT NULL AND `update_date` LIKE '%".date("Y-m-d")."%' ")['COUNT(id)']);?>
+                                        <?=format_cash($CMSNT->get_row("SELECT COUNT(id) FROM `accounts` WHERE `buyer` IS NOT NULL AND `update_date` >= DATE(NOW()) AND `update_date` < DATE(NOW()) + INTERVAL 1 DAY ")['COUNT(id)']);?>
                                     </span>
                                     <span class="text-muted">TÀI KHOẢN ĐÃ BÁN</span>
                                 </p>
@@ -296,7 +292,7 @@ $currentDate = date("Y-m-d");
                                 </p>
                                 <p class="d-flex flex-column text-right">
                                     <span class="font-weight-bold">
-                                        <?=format_cash($CMSNT->get_row("SELECT COUNT(id) FROM `users` WHERE `create_date` LIKE '%".date("Y-m-d")."%' ")['COUNT(id)']);?>
+                                        <?=format_cash($CMSNT->get_row("SELECT COUNT(id) FROM `users` WHERE `create_date` >= DATE(NOW()) AND `create_date` < DATE(NOW()) + INTERVAL 1 DAY ")['COUNT(id)']);?>
                                     </span>
                                     <span class="text-muted">THÀNH VIÊN MỚI</span>
                                 </p>
@@ -381,14 +377,14 @@ $currentDate = date("Y-m-d");
                                         <div class="info-box-content">
                                             <span class="info-box-text">Tổng tiền nạp hôm nay</span>
                                             <span class="info-box-number"><?=format_currency(
-                                        $CMSNT->get_row("SELECT SUM(`price`) FROM `payment_pm` WHERE `status` = 1 AND `update_date` LIKE '%".date("Y-m-d")."%' ")['SUM(`price`)'] +
-                                    $CMSNT->get_row("SELECT SUM(`pay`) FROM `invoices` WHERE `status` = 1 AND `fake` = 0 AND `update_date` LIKE '%".date("Y-m-d")."%'")['SUM(`pay`)'] +
-                                    $CMSNT->get_row("SELECT SUM(`price`) FROM `cards` WHERE `status` = 1 AND `update_date` LIKE '%".date("Y-m-d")."%'")['SUM(`price`)'] +
-                                    $CMSNT->get_row("SELECT SUM(`price`) FROM `payment_paypal` WHERE `create_date` LIKE '%".date("Y-m-d")."%'")['SUM(`price`)']
+                                        $CMSNT->get_row("SELECT SUM(`price`) FROM `payment_pm` WHERE `status` = 1 AND `update_date` >= DATE(NOW()) AND `update_date` < DATE(NOW()) + INTERVAL 1 DAY ")['SUM(`price`)'] +
+                                    $CMSNT->get_row("SELECT SUM(`pay`) FROM `invoices` WHERE `status` = 1 AND `fake` = 0 AND `update_date` >= DATE(NOW()) AND `update_date` < DATE(NOW()) + INTERVAL 1 DAY")['SUM(`pay`)'] +
+                                    $CMSNT->get_row("SELECT SUM(`price`) FROM `cards` WHERE `status` = 1 AND `update_date` >= DATE(NOW()) AND `update_date` < DATE(NOW()) + INTERVAL 1 DAY")['SUM(`price`)'] +
+                                    $CMSNT->get_row("SELECT SUM(`price`) FROM `payment_paypal` WHERE `create_date` >= DATE(NOW()) AND `create_date` < DATE(NOW()) + INTERVAL 1 DAY")['SUM(`price`)']
                                     +
-                                    $CMSNT->get_row("SELECT SUM(amount) FROM `server2_autobank` WHERE `create_gettime` LIKE '%".date("Y-m-d")."%' ")['SUM(amount)']
+                                    $CMSNT->get_row("SELECT SUM(amount) FROM `server2_autobank` WHERE `create_gettime` >= DATE(NOW()) AND `create_gettime` < DATE(NOW()) + INTERVAL 1 DAY ")['SUM(amount)']
                                     +
-                                    ($CMSNT->get_row("SELECT SUM(amount) FROM `crypto_invoice` WHERE `status` = 'completed' AND `create_gettime` LIKE '%".date("Y-m-d")."%' ")['SUM(amount)'] * $CMSNT->site('rate_crypto'))
+                                    ($CMSNT->get_row("SELECT SUM(amount) FROM `crypto_invoice` WHERE `status` = 'completed' AND `create_gettime` >= DATE(NOW()) AND `create_gettime` LIKE '%".$currentDate."%' ")['SUM(amount)'] * $CMSNT->site('rate_crypto'))
                                     );?></span>
                                         </div>
                                         <!-- /.info-box-content -->

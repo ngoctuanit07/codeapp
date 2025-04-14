@@ -63,9 +63,6 @@ if (isset($_POST['SaveLang'])) {
             'createdate'    => gettime(),
             'action'        => "Lưu ngôn ngữ ID (".$row['id'].") vào hệ thống."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Cập nhật ngôn ngữ ('.$row['lang'].' ID '.$row['id'].').';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Lưu thành công !")){window.history.back().location.reload();}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Lưu thất bại !")){window.history.back().location.reload();}</script>');

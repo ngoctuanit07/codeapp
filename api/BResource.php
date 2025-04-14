@@ -11,7 +11,7 @@ $CMSNT = new DB();
 $Mobile_Detect = new Mobile_Detect();
 
 if (isset($_GET['username']) && isset($_GET['password'])) {
-    if ($CMSNT->site('status') != 1 && isSecureCookie('admin_login') != true) {
+    if ($CMSNT->site('status') != 1 && !isset($_SESSION['admin_login'])) {
         die(json_encode(['status' => 'error', 'msg' => __('Hệ thống đang bảo trì')]));
     }
     if($CMSNT->site('status_api_buyproduct') == 0){
@@ -29,8 +29,15 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
     $password = check_string($_GET['password']);
     if ($CMSNT->site('type_password') == 'bcrypt') {
         if (!password_verify($password, $getUser['password'])) {
-            // Rate limit
-            checkBlockIP('API', 5);
+            if($getUser['login_attempts'] >= $config['limit_block_ip_login_client']){
+                $CMSNT->insert('banned_ips', [
+                    'ip'                => myip(),
+                    'attempts'          => $getUser['login_attempts'],
+                    'create_gettime'    => gettime(),
+                    'banned'            => 1,
+                    'reason'            => __('Đăng nhập thất bại nhiều lần')
+                ]);
+            }
             if($getUser['login_attempts'] >= $config['limit_block_login_client']){
                 $User = new users();
                 $User->Banned($getUser['id'], __('Đăng nhập thất bại nhiều lần'));
@@ -41,8 +48,15 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
         }
     } else {
         if ($getUser['password'] != TypePassword($password)) {
-            // Rate limit
-            checkBlockIP('API', 5);
+            if($getUser['login_attempts'] >= $config['limit_block_ip_login_client']){
+                $CMSNT->insert('banned_ips', [
+                    'ip'                => myip(),
+                    'attempts'          => $getUser['login_attempts'],
+                    'create_gettime'    => gettime(),
+                    'banned'            => 1,
+                    'reason'            => __('Đăng nhập thất bại nhiều lần')
+                ]);
+            }
             if($getUser['login_attempts'] >= $config['limit_block_login_client']){
                 $User = new users();
                 $User->Banned($getUser['id'], __('Đăng nhập thất bại nhiều lần'));
@@ -81,17 +95,8 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
     } 
     $id = check_string($_GET['id']);
     $amount = check_string($_GET['amount']);
-    if (is_numeric($amount) && floor($amount) != $amount) {
-        die(json_encode(['status' => 'error', 'msg' => __('Số lượng mua không hợp lệ')]));
-    }
     if (!$row = $CMSNT->get_row("SELECT * FROM `products` WHERE `id` = '$id' AND `status` = 1 ")) {
         die(json_encode(['status' => 'error', 'msg' => __('Sản phẩm không tồn tại trong hệ thống')]));
-    }
-    if($row['allow_api'] == 0){
-        die(json_encode([
-            'status'    => 'error',
-            'msg'       => __('Sản phẩm này không được phép đấu API')
-        ]));
     }
     if($_GET['amount'] < $row['minimum']){
         die(json_encode(['status' => 'error', 'msg' => __('Số lượng mua tối thiểu là ').$row['minimum']]));
@@ -99,7 +104,7 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
     if($_GET['amount'] > $row['maximum']){
         die(json_encode(['status' => 'error', 'msg' => __('Số lượng mua tối đa là ').$row['maximum']]));
     }
-    if($row['id_connect_api'] != 0){
+    if($row['id_api'] != 0){
         // LẤY ROW TABLE CONNECT_API
         $row_connect_api = $CMSNT->get_row(" SELECT * FROM `connect_api` WHERE `id` = '".$row['id_connect_api']."' ");
 
@@ -138,7 +143,7 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
         die(json_encode(['status' => 'error', 'msg' => __('Số dư API không đủ, vui lòng liên hệ admin')]));
     }
     $trans_id = random("QWETYUIOPASDFGHJKLXCVBNM", 4).time();
-    $isBuy = $User->RemoveCredits($getUser['id'], $total_payment, "[API] ".__('Thanh toán đơn hàng mua tài khoản')." (".check_string($row['name']).")"." #".$trans_id, 'BUY_API_'.uniqid().'_'.$trans_id);
+    $isBuy = $User->RemoveCredits($getUser['id'], $total_payment, "[API] ".__('Thanh toán đơn hàng mua tài khoản')." (".check_string($row['name']).")"." #".$trans_id);
     if ($isBuy) {
         if (getRowRealtime("users", $getUser['id'], "money") < 0) {
             $User->Banned($getUser['id'], '[API] Gian lận khi mua tài khoản');
@@ -146,7 +151,7 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
         }
         $api_trans_id = NULL;
         $id_connect_api = 0;
-        if($row['id_connect_api'] != 0){
+        if($row['id_api'] != 0){
 
             // API CMSNT
             if($row_connect_api['type'] == 'CMSNT'){
@@ -167,33 +172,6 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
                         'trans_id'      => $trans_id,
                         'api_trans_id'  => $api_trans_id,
                         'account'       => $account['account'],
-                        'status'        => 'LIVE',
-                        'update_date'   => gettime(),
-                        'create_date'   => gettime(),
-                        'product_id'    =>  $row['id']
-                    ]);
-                }
-            }
-
-            // API SHOPCLONE7
-            if($row_connect_api['type'] == 'SHOPCLONE7'){
-                $data = buy_API_SHOPCLONE7($row_connect_api['domain'], $row_connect_api['username'], $row_connect_api['password'], $row['id_api'], $amount);
-                $data = json_decode($data, true);
-                if($data['status'] == 'error'){
-                    $User->RefundCredits($getUser['id'], $total_payment, "[Error] ".__('Hoàn tiền đơn hàng mua tài khoản')." #".$trans_id." - ".$row['name']);
-                    die(json_encode(['status' => 'error', 'msg' => __($data['msg'])]));
-                }
-                $api_trans_id = $data['trans_id'];
-                $id_connect_api = $row['id_connect_api'];
-                $isUpdateAccount = 1;
-                foreach($data['data'] as $account){
-                    // THÊM TÀI KHOẢN TỪ API VÀO HỆ THỐNG
-                    $CMSNT->insert("accounts", [
-                        'seller'        => $row['user_id'],
-                        'buyer'         => $getUser['id'],
-                        'trans_id'      => $trans_id,
-                        'api_trans_id'  => $api_trans_id,
-                        'account'       => $account,
                         'status'        => 'LIVE',
                         'update_date'   => gettime(),
                         'create_date'   => gettime(),
@@ -308,12 +286,7 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
                         break;
                     }
                 }
-                if(explode(PHP_EOL, $data_account['order']['data'])){
-                    $lines = explode(PHP_EOL, $data_account['order']['data']);
-                }else{
-                    // FIX DO API BMTRAU THAY ĐỔI JSON API
-                    $lines = $data_account['order']['data'];
-                }
+                $lines = explode(PHP_EOL, $data_account['order']['data']);
                 foreach($lines as $account){
                     if($account == ''){
                         continue;
@@ -608,70 +581,12 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
                 }
             }
 
-            // API 17
-            if($row_connect_api['type'] == 'API_17'){
-                $data = curl_get2($row_connect_api['domain']."/api/BuyProduct.php?username=".$row_connect_api['username']."&password=".$row_connect_api['password']."&id=".$row['id_api'].'&amount='.$amount);
-                $data = json_decode($data, true);
-                if($data['status'] == 'error'){
-                    $User->RefundCredits($getUser['id'], $total_payment, "[Error] ".__('Hoàn tiền đơn hàng mua tài khoản')." #".$trans_id." - ".$row['name']);
-                    die(json_encode(['status' => 'error', 'msg' => __($data['msg'])]));
-                }
-                $api_trans_id = $data['data']['trans_id'];
-                $id_connect_api = $row['id_connect_api'];
-                $isUpdateAccount = 1;
-                foreach($data['data']['lists'] as $account){
-                    // THÊM TÀI KHOẢN TỪ API VÀO HỆ THỐNG
-                    $CMSNT->insert("accounts", [
-                        'seller'        => $row['user_id'],
-                        'buyer'         => $getUser['id'],
-                        'trans_id'      => $trans_id,
-                        'api_trans_id'  => $api_trans_id,
-                        'account'       => $account['account'],
-                        'status'        => 'LIVE',
-                        'update_date'   => gettime(),
-                        'create_date'   => gettime(),
-                        'product_id'    =>  $row['id']
-                    ]);
-                }
-            }
-
-            // API 23
-            if($row_connect_api['type'] == 'API_23'){
-                $response = buy_API_23($row_connect_api['domain'], $row_connect_api['password'], $row['id_api'], $amount);
-                $data = json_decode($response, true);
-                if($data['status'] != 'success'){
-                    $User->RefundCredits($getUser['id'], $total_payment, "[Error] ".__('Hoàn tiền đơn hàng mua tài khoản')." #".$trans_id." - ".$row['name']." (".$data['message'].")");
-                    die(json_encode(['status' => 'error', 'msg' => __($data['detail'])]));
-                }
-                $order_id = NULL;
-                $api_trans_id = $order_id;
-                $id_connect_api = $row['id_connect_api'];
-                $isUpdateAccount = 1;
-                foreach(explode(',', $data['data']) as $account){
-                    if (!empty($account)) {
-                        // THÊM TÀI KHOẢN TỪ API VÀO HỆ THỐNG
-                        $CMSNT->insert("accounts", [
-                            'seller'        => $row['user_id'],
-                            'buyer'         => $getUser['id'],
-                            'trans_id'      => $trans_id,
-                            'api_trans_id'  => $api_trans_id,
-                            'account'       => check_string($account),
-                            'status'        => 'LIVE',
-                            'update_date'   => gettime(),
-                            'create_date'   => gettime(),
-                            'product_id'    => $row['id']
-                        ]);
-                    }
-                }
-            }
             
 
         }else{
             $order_by = 'ORDER BY `id` ASC';
             if($row['filter_time_checklive'] == 1){
                 $order_by = 'ORDER BY `time_live` DESC';
-            } else if($row['filter_time_checklive'] == 2){
-                $order_by = 'ORDER BY `id` DESC';
             }
             // SỐ LƯỢNG HỆ THỐNG
             if ($amount > $CMSNT->get_row("SELECT COUNT(id) FROM `accounts` WHERE `product_id` = '$id' AND `buyer` IS NULL AND `status` = 'LIVE' ")['COUNT(id)']) {
@@ -686,11 +601,6 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
             ], " `product_id` = '$id' AND `buyer` IS NULL AND `status` = 'LIVE' $order_by ", $amount);
         }
         if ($isUpdateAccount) {
-            if($CMSNT->num_rows(" SELECT * FROM `accounts` WHERE `trans_id` = '$trans_id' AND `buyer` = '".$getUser['id']."' ") == 0){
-                // Hoàn tiền người mua
-                $User->RefundCredits($getUser['id'], $total_payment, "[Error] Hoàn tiền đơn hàng mua tài khoản #".$trans_id." - ".$row['name']);
-                die(json_encode(['status' => 'error', 'msg' => __('Số lượng trong hệ thống không đủ')]));
-            }
             /* THÊM ĐƠN HÀNG VÀO HỆ THỐNG */
             $CMSNT->insert("orders", [
                 'trans_id'      => $trans_id,
@@ -740,9 +650,8 @@ if (isset($_GET['username']) && isset($_GET['password'])) {
             $my_text = str_replace('{trans_id}', $trans_id, $my_text);
             $my_text = str_replace('{time}', gettime(), $my_text);
             $my_text = str_replace('{method}', 'API', $my_text);
-            $my_text = str_replace('{available}', $CMSNT->get_row("SELECT COUNT(id) FROM `accounts` WHERE `product_id` = '$id' AND `buyer` IS NULL AND `status` = 'LIVE' ")['COUNT(id)'], $my_text);
             sendMessAdmin($my_text);
- 
+
 
             die(json_encode([
                 'status'    => 'success',

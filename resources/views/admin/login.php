@@ -8,9 +8,6 @@ $body = [
 ];
 $body['header'] = '';
 $body['footer'] = '';
-
-redirect(base_url('client/login'));
-
 require_once(__DIR__.'/header.php');
 ?>
 <link rel="stylesheet" href="<?=base_url('public/css/LoginAdmin.css');?>">
@@ -21,8 +18,8 @@ require_once(__DIR__.'/header.php');
     <h1 id="litheader">CMSNT.CO</h1>
     <div class="inset">
         <p>
-            <input type="text" name="username" id="username"
-                value="<?=$CMSNT->site('status_demo') == 1 ? 'admin' : '';?>" placeholder="Username">
+            <input type="text" name="email" id="email"
+                value="<?=$CMSNT->site('status_demo') == 1 ? 'admin@cmsnt.co' : '';?>" placeholder="Email">
         </p>
         <p>
             <input type="password" name="password" id="password"
@@ -49,7 +46,7 @@ $("#btnLogin").on("click", function() {
         method: "POST",
         dataType: "JSON",
         data: {
-            username: $("#username").val(),
+            email: $("#email").val(),
             password: $("#password").val(),
             recaptcha: $("#g-recaptcha-response").val()
         },

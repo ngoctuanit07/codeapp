@@ -135,7 +135,6 @@ if (isset($_GET['id'])) {
             'ref_money' => check_string($_POST['ref_money']),
             'ref_total_money' => check_string($_POST['ref_total_money']),
             'ref_click' => check_string($_POST['ref_click']),
-            'status_2fa'    => check_string($_POST['status_2fa']),
             'gender'    => check_string($_POST['gender']),
             'admin'     => check_string($_POST['admin']),
             'ctv'       => check_string($_POST['ctv']),
@@ -161,9 +160,6 @@ if (isset($_GET['id'])) {
                 'createdate'    => gettime(),
                 'action'        => __('Bạn được Admin thay đổi thông tin.')
             ]);
-            /** SEND NOTI CHO ADMIN */
-            $my_text = '['.$getUser['username'].'] Cập nhật thông tin thành viên '.$user['username'].'['.$user['id'].'].';
-            sendMessAdmin($my_text);
             die('<script type="text/javascript">if(!alert("Cập nhật thông tin thành công")){window.history.back().location.reload();}</script>');
         }
     }
@@ -186,11 +182,7 @@ if (isset($_GET['id'])) {
         ]);
         /* Xử lý cộng tiền */
         $DBUser = new users();
-        $DBUser->AddCredits($id, $amount, '[Admin]'.$reason, 'ADMIN_ADD_CREDITS_'.uniqid());
-
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Cộng '.$amount.' cho User '.$user['username'].'['.$user['id'].'] lý do: '.$reason.'.';
-        sendMessAdmin($my_text);
+        $DBUser->AddCredits($id, $amount, '[Admin]'.$reason);
         die('<script type="text/javascript">if(!alert("Cộng tiền thành công !")){window.history.back().location.reload();}</script>');
     }
     if (isset($_POST['tru_tien'])) {
@@ -212,10 +204,7 @@ if (isset($_GET['id'])) {
         ]);
         /* Xử lý trừ tiền */
         $DBUser = new users();
-        $DBUser->RemoveCredits($id, $amount, '[Admin]'.$reason, 'ADMIN_REMOVE_CREDITS_'.uniqid());
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Trừ '.$amount.' cho User '.$user['username'].'['.$user['id'].'] lý do: '.$reason.'.';
-        sendMessAdmin($my_text);
+        $DBUser->RemoveCredits($id, $amount, '[Admin]'.$reason);
         die('<script type="text/javascript">if(!alert("Trừ tiền thành công !")){window.history.back().location.reload();}</script>');
     }
 }

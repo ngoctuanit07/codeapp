@@ -80,9 +80,6 @@ if (isset($_POST['SaveDocument'])) {
             'createdate'    => gettime(),
             'action'        => "Chỉnh sửa tài liệu (".$row['name']." ID ".$row['id'].")."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Cập nhật tài liệu ('.$row['name'].' ID '.$row['id'].').';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Lưu thành công!")){window.history.back().location.reload();}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Thêm thất bại !")){window.history.back().location.reload();}</script>');

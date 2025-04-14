@@ -57,31 +57,11 @@ if (isset($_POST['btnSave'])) {
     }
     $data1 = 'ERROR';
     if($_POST['type'] == 'CMSNT'){
-        $checkdomain = curl_get('https://api.cmsnt.co/checkdomain.php?domain='.check_string($_POST['domain']));
-        $checkdomain = json_decode($checkdomain, true);
-        if($checkdomain['status'] == false){
-            die('<script type="text/javascript">if(!alert("'.$checkdomain['msg'].'")){window.history.back().location.reload();}</script>');
-        }
-        
         $data1 = curl_get(check_string($_POST['domain'])."/api/GetBalance.php?username=".check_string($_POST['username'])."&password=".check_string($_POST['password']));
         $data = json_decode($data1, true);
         if(isset($data['status']) && $data['status'] == 'error'){
             die('<script type="text/javascript">if(!alert("'.$data['msg'].'")){window.history.back().location.reload();}</script>');
         }
-    }
-    if($_POST['type'] == 'SHOPCLONE7'){
-        $checkdomain = curl_get('https://api.cmsnt.co/checkdomain.php?domain='.check_string($_POST['domain']));
-        $checkdomain = json_decode($checkdomain, true);
-        if($checkdomain['status'] == false){
-            die('<script type="text/javascript">if(!alert("'.$checkdomain['msg'].'")){window.history.back().location.reload();}</script>');
-        }
-
-        $result = curl_get(check_string($_POST['domain'])."api/profile.php?api_key=".check_string($_POST['password']));
-        $result = json_decode($result, true);
-        if(isset($result['status']) && $result['status'] == 'error'){
-            die('<script type="text/javascript">if(!alert("'.$result['msg'].'")){window.history.back().location.reload();}</script>');
-        }
-        $data1 = format_currency($result['data']['money']);
     }
     if($_POST['type'] == 'API_1'){
         $response = balance_API_1($_POST['domain'], $_POST['password']);
@@ -173,16 +153,7 @@ if (isset($_POST['btnSave'])) {
         }
         $data1 = format_currency($getPrice['price']);
     }
-    if($_POST['type'] == 'API_17'){
-        $data1 = curl_get(check_string($_POST['domain'])."/api/GetBalance.php?username=".check_string($_POST['username'])."&password=".check_string($_POST['password']));
-        $data = json_decode($data1, true);
-        if(isset($data['status']) && $data['status'] == 'error'){
-            die('<script type="text/javascript">if(!alert("'.$data['msg'].'")){window.history.back().location.reload();}</script>');
-        }
-    }
-    if($_POST['type'] == 'API_23'){
-        $data1 = 'Không có API lấy số dư';
-    }
+
     $isUpdate = $CMSNT->update("connect_api", [
         'domain'        => check_string($_POST['domain']),
         'type'          => check_string($_POST['type']),
@@ -195,9 +166,6 @@ if (isset($_POST['btnSave'])) {
         'price'         => $data1
     ], " `id` = '" . $row['id'] . "' ");
     if ($isUpdate) {
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Cập nhật kết nối API ('.check_string($_POST['domain']).' - '.check_string($_POST['type']).').';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Lưu thành công!")){window.history.back().location.reload();}</script>');
     }
     die('<script type="text/javascript">if(!alert("Lưu thất bại!")){window.history.back().location.reload();}</script>');
@@ -342,30 +310,6 @@ if (isset($_POST['btnSave'])) {
                             target="_blank"><?=base_url('cron/cron16.php');?></a>
                     </div>
                     <?php endif?>
-                    <?php if($row['type'] == 'API_17' && time() - $CMSNT->site('check_time_cron17') >= 120):?>
-                    <div class="alert alert-warning alert-dismissible">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        <h5><i class="icon fas fa-exclamation-triangle"></i> Alert!</h5>
-                        Vui lòng thực hiện <b>CRON JOB</b> liên kết: <a href=" <?=base_url('cron/cron17.php');?>"
-                            target="_blank"><?=base_url('cron/cron17.php');?></a>
-                    </div>
-                    <?php endif?>
-                    <?php if($row['type'] == 'SHOPCLONE7' && time() - $CMSNT->site('check_time_shopclone7') >= 120):?>
-                    <div class="alert alert-warning alert-dismissible">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        <h5><i class="icon fas fa-exclamation-triangle"></i> Alert!</h5>
-                        Vui lòng thực hiện <b>CRON JOB</b> liên kết: <a href=" <?=base_url('cron/shopclone7.php');?>"
-                            target="_blank"><?=base_url('cron/shopclone7.php');?></a>
-                    </div>
-                    <?php endif?>
-                    <?php if($row['type'] == 'API_23' && time() - $CMSNT->site('check_time_cron23') >= 120):?>
-                    <div class="alert alert-warning alert-dismissible">
-                        <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                        <h5><i class="icon fas fa-exclamation-triangle"></i> Alert!</h5>
-                        Vui lòng thực hiện <b>CRON JOB</b> liên kết: <a href=" <?=base_url('cron/cron23.php');?>"
-                            target="_blank"><?=base_url('cron/cron23.php');?></a>
-                    </div>
-                    <?php endif?>
                 </section>
                 <section class="col-lg-12">
                     <div class="card card-primary card-outline">
@@ -424,10 +368,7 @@ if (isset($_POST['btnSave'])) {
                                             <label>Loại API</label>
                                             <select class="form-control select2bs4" name="type">
                                                 <option <?= $row['type'] == 'CMSNT' ? 'selected' : ''; ?> value="CMSNT">
-                                                    SHOPCLONE5 & SHOPCLONE6 CMSNT
-                                                </option>
-                                                <option <?= $row['type'] == 'SHOPCLONE7' ? 'selected' : ''; ?> value="SHOPCLONE7">
-                                                    SHOPCLONE7 CMSNT
+                                                    CMSNT
                                                 </option>
                                                 <?php if(checkAddon(11412) == true):?>
                                                 <option <?= $row['type'] == 'API_1' ? 'selected' : ''; ?> value="API_1">
@@ -503,16 +444,6 @@ if (isset($_POST['btnSave'])) {
                                                 <option <?= $row['type'] == 'API_16' ? 'selected' : ''; ?> value="API_16">
                                                     API 16
                                                 </option>
-                                                <?php endif?>
-                                                <?php if(checkAddon(11901) == true):?>
-                                                    <option <?= $row['type'] == 'API_17' ? 'selected' : ''; ?> value="API_17">
-                                                        API 17
-                                                    </option>
-                                                <?php endif?>
-                                                <?php if(checkAddon(11925) == true):?>
-                                                    <option <?= $row['type'] == 'API_23' ? 'selected' : ''; ?> value="API_23">
-                                                        API 23
-                                                    </option>
                                                 <?php endif?>
                                             </select>
                                         </div>

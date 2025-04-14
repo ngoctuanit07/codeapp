@@ -155,7 +155,7 @@ require_once(__DIR__.'/sidebar.php');
                     </div>
                 </div>
                 <?php 
-                if ($CMSNT->site('is_update_phone') == 1 && isset($_COOKIE['user_login']) && $getUser['phone'] == '') {?>
+                if ($CMSNT->site('is_update_phone') == 1 && isset($_SESSION['login']) && $getUser['phone'] == '') {?>
                 <div class="alert text-white bg-warning" role="alert">
                     <div class="iq-alert-text"><i class="fa-solid fa-exclamation mr-1"></i><?=__('Vui lòng cập nhật số điện thoại để tiếp tục sử dụng website');?></div>
                 </div>
@@ -197,7 +197,7 @@ require_once(__DIR__.'/sidebar.php');
                             <div class="col-lg-8 fv-row">
                                 <input type="email" id="email" class="form-control"
                                     placeholder="<?=__('Nhập địa chỉ Email');?>" value="<?=$getUser['email'];?>"
-                                    readonly />
+                                    required />
                             </div>
                         </div>
                         <div class="form-group row">
@@ -244,7 +244,8 @@ $("#btnSaveProfile").on("click", function() {
             action: 'ChangeProfile',
             token: $("#token").val(),
             fullname: $("#fullname").val(),
-            phone: $("#phone").val()
+            phone: $("#phone").val(),
+            email: $("#email").val()
         },
         success: function(respone) {
             if (respone.status == 'success') {

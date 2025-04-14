@@ -10,9 +10,15 @@
     //     echo '1'.random('01233456789', 6).'|'.random('QWERTYUIOPASDFGHJKLZXCVBNM0123456789', 16).'<br>';
     // }
      
-
-
-
+    function insert_options($name, $value){
+        global $CMSNT;
+        if (!$CMSNT->get_row("SELECT * FROM `settings` WHERE `name` = '$name' ")) {
+            $CMSNT->insert("settings", [
+                'name'  => $name,
+                'value' => $value
+            ]);
+        }
+    }
     $CMSNT->query(" ALTER TABLE `menu` ADD `position` INT(11) NOT NULL DEFAULT '3' AFTER `target` ");
     $CMSNT->query(" ALTER TABLE `menu` ADD `content` LONGTEXT NULL DEFAULT NULL AFTER `position` ");
     $CMSNT->query(" ALTER TABLE `menu` ADD `slug` TEXT NULL DEFAULT NULL AFTER `name` ");
@@ -1025,50 +1031,4 @@
     $CMSNT->query(" ALTER TABLE `users` ADD `limit_2fa` INT(11) NOT NULL DEFAULT '0' AFTER `token_2fa`    ");
     
     insert_options('status_otp_login_admin', 0);
-
-
-    if($CMSNT->num_rows(" SELECT * FROM `addons` WHERE `id` = 11901 ") == 0){
-        $CMSNT->insert("addons", [
-            'id'            => 11901,
-            'name'          => 'API 17',
-            'description'   => 'Kết nối API sản phẩm website không dùng API của CMSNT',
-            'image'         => 'https://i.imgur.com/EFq5tTX.png',
-            'createdate'    => '2023-12-29 00:00:00',
-            'price'         => 1000000,
-            'purchase_key'  => ''
-        ]);
-    }
-    insert_options('check_time_cron17', 0);
-    insert_options('check_time_shopclone7', 0);
-    $CMSNT->query(" ALTER TABLE `dongtien` ADD `transid` VARCHAR(55) NULL AFTER `noidung`, ADD UNIQUE (`transid`) ");
-
-    $CMSNT->query(" ALTER TABLE `products` ADD `allow_api` INT(11) NOT NULL DEFAULT '1' AFTER `filter_time_checklive` ");
-    
-    if($CMSNT->num_rows(" SELECT * FROM `addons` WHERE `id` = 11925 ") == 0){
-        $CMSNT->insert("addons", [
-            'id'            => 11925,
-            'name'          => 'API 23',
-            'description'   => 'Kết nối API sản phẩm website không dùng API của CMSNT',
-            'image'         => 'https://i.imgur.com/EFq5tTX.png',
-            'createdate'    => '2024-09-13 00:00:00',
-            'price'         => 1000000,
-            'purchase_key'  => ''
-        ]);
-    }
-    insert_options('check_time_cron23', 0);
-
-    insert_options('status_only_ip_login_admin', 1);
-
-    insert_options('limit_block_ip_admin_access', 5);
-    $CMSNT->query(" CREATE TABLE `failed_attempts` ( `id` INT NOT NULL AUTO_INCREMENT , `ip_address` VARCHAR(45) NULL DEFAULT NULL , `attempts` INT(11) NOT NULL DEFAULT '0' , `create_gettime` DATETIME NOT NULL , `type` VARCHAR(55) NULL DEFAULT NULL , PRIMARY KEY (`id`)) ");
-
-    insert_ip_block('27.75.226.17', 'IP PHÁ HOẠI, KHÔNG ĐƯỢC XÓA');
-
-    $CMSNT->query(" ALTER TABLE `categories` ADD `update_api` INT(11) NOT NULL DEFAULT '0' AFTER `status` ");
-
-    $CMSNT->query(" ALTER TABLE `users` CHANGE `token` `token` VARCHAR(255) CHARACTER SET utf8 COLLATE utf8_general_ci NULL DEFAULT NULL ");
-    
-
-
     die('Success!');
-

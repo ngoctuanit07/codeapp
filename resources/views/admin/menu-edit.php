@@ -78,9 +78,6 @@ if (isset($_POST['save'])) {
             'createdate'    => gettime(),
             'action'        => "Chỉnh sửa menu (".$row['name']." ID ".$row['id'].") vào hệ thống."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Cập nhật menu ('.$row['name'].' ID '.$row['id'].').';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Lưu thành công !")){location.href = "";}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Lưu menu thất bại, vui lòng thử lại!")){window.history.back().location.reload();}</script>');

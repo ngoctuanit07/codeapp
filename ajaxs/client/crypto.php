@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($CMSNT->site('status_demo') != 0) {
         die(json_encode(['status' => 'error', 'msg' => 'Bạn không được dùng chức năng này vì đây là trang web demo']));
     }
-    if ($CMSNT->site('status') != 1 && isSecureCookie('admin_login') != true) {
+    if ($CMSNT->site('status') != 1 && !isset($_SESSION['admin_login'])) {
         die(json_encode(['status' => 'error', 'msg' => __('Hệ thống đang bảo trì')]));
     }
     if ($CMSNT->site('status_crypto') != 1) {
@@ -36,8 +36,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if($amount > $CMSNT->site('crypto_max')){
         die(json_encode(['status' => 'error', 'msg' => __('The maximum deposit amount is:').' $'.format_cash($CMSNT->site('crypto_max'))]));
     }
-    if($CMSNT->num_rows(" SELECT * FROM `crypto_invoice` WHERE `user_id` = '".$getUser['id']."' AND `status` = 'waiting' AND ROUND(`amount`) = '$amount'  ") >= 3){
-        die(json_encode(['status' => 'error', 'msg' => __('Vui lòng không SPAM')]));
+    if ($CMSNT->num_rows("SELECT * FROM `crypto_invoice` WHERE `user_id` = '".$getUser['id']."' AND `status` = 'waiting' AND `create_gettime` >= DATE(NOW()) AND `create_gettime` < DATE(NOW()) + INTERVAL 1 DAY ") >= 5) {
+        die(json_encode(['status' => 'error', 'msg' => __('Bạn đang có quá nhiều hoá đơn đang chờ xử lý trong ngày')]));
     }
     $name = 'Recharge '.check_string($_SERVER['HTTP_HOST']);
     $description = 'Recharge invoice to '.$getUser['username'];

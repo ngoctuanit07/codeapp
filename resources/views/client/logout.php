@@ -1,16 +1,12 @@
 <?php if (!defined('IN_SITE')) {
     die('The Request Not Found');
 }
+//require_once (__DIR__.'/../../../models/is_user.php');
+$CMSNT = new DB();
 
-// Xóa cookie
-setcookie('token', '', time() - 3600, '/', '', true, true);
-setcookie('admin_login', '', time() - 3600, '/', '', true, true);
-setcookie('user_login', '', time() - 3600, '/', '', true, true);
-setcookie('ctv_login', '', time() - 3600, '/', '', true, true);
-setcookie('user_agent', '', time() - 3600, '/', '', true, true);
-
-// Xóa session
-session_unset(); // Xóa tất cả các biến session
-session_destroy(); // Hủy session
-redirect(base_url('client/login'));
+setcookie('token', null, -1, '/');
+//setcookie("token", "", time() - $CMSNT->site('session_login'));
+session_destroy();
+redirect(base_url('client/'));
+?>
 

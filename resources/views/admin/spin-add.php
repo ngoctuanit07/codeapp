@@ -40,9 +40,6 @@ if (isset($_POST['Add'])) {
             'createdate'    => gettime(),
             'action'        => "Thêm tuỳ chọn phần thưởng vòng quay ".check_string($_POST['name'])
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Thêm tuỳ chọn phần thưởng vòng quay ('.check_string($_POST['name']).').';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Thêm thành công !")){location.href = "'.BASE_URL('admin/spin-list').'";}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Thêm thất bại !")){window.history.back().location.reload();}</script>');

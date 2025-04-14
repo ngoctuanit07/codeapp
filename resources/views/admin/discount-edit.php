@@ -46,9 +46,6 @@ if (isset($_POST['SaveDiscount'])) {
             'createdate'    => gettime(),
             'action'        => "Chỉnh sửa điều kiện giảm giá (ID ".$row['id'].")."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Cập nhật điều kiện giảm giá ('.getRowRealtime('products', check_string($_POST['product_id']), 'name').' | '.format_cash(check_string($_POST['amount'])).' | '.check_string($_POST['discount']).'%).';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Lưu thành công!")){window.history.back().location.reload();}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Lưu thất bại!")){window.history.back().location.reload();}</script>');

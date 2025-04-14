@@ -32,29 +32,11 @@ if (isset($_POST['btnAdd'])) {
     }
     $data1 = 'Không tìm thấy dữ liệu số dư';
     if($_POST['type'] == 'CMSNT'){
-        $checkdomain = curl_get('https://api.cmsnt.co/checkdomain.php?domain='.check_string($_POST['domain']));
-        $checkdomain = json_decode($checkdomain, true);
-        if($checkdomain['status'] == false){
-            die('<script type="text/javascript">if(!alert("'.$checkdomain['msg'].'")){window.history.back().location.reload();}</script>');
-        }
         $data1 = curl_get(check_string($_POST['domain'])."/api/GetBalance.php?username=".check_string($_POST['username'])."&password=".check_string($_POST['password']));
         $data = json_decode($data1, true);
         if(isset($data['status']) && $data['status'] == 'error'){
             die('<script type="text/javascript">if(!alert("'.$data['msg'].'")){window.history.back().location.reload();}</script>');
         }
-    }
-    if($_POST['type'] == 'SHOPCLONE7'){
-        $checkdomain = curl_get('https://api.cmsnt.co/checkdomain.php?domain='.check_string($_POST['domain']));
-        $checkdomain = json_decode($checkdomain, true);
-        if($checkdomain['status'] == false){
-            die('<script type="text/javascript">if(!alert("'.$checkdomain['msg'].'")){window.history.back().location.reload();}</script>');
-        }
-        $result = curl_get(check_string($_POST['domain'])."api/profile.php?api_key=".check_string($_POST['password']));
-        $result = json_decode($result, true);
-        if(isset($result['status']) && $result['status'] == 'error'){
-            die('<script type="text/javascript">if(!alert("'.$result['msg'].'")){window.history.back().location.reload();}</script>');
-        }
-        $data1 = format_currency($result['data']['money']);
     }
     if($_POST['type'] == 'API_1'){
         $response = balance_API_1($_POST['domain'], $_POST['password']);
@@ -149,16 +131,6 @@ if (isset($_POST['btnAdd'])) {
         }
         $data1 = format_currency($getPrice['price']);
     }
-    if($_POST['type'] == 'API_17'){
-        $data1 = curl_get(check_string($_POST['domain'])."/api/GetBalance.php?username=".check_string($_POST['username'])."&password=".check_string($_POST['password']));
-        $data = json_decode($data1, true);
-        if(isset($data['status']) && $data['status'] == 'error'){
-            die('<script type="text/javascript">if(!alert("'.$data['msg'].'")){window.history.back().location.reload();}</script>');
-        }
-    }
-    if($_POST['type'] == 'API_23'){
-        $data1 = 'Không có API lấy số dư';
-    }
     $isInsert = $CMSNT->insert("connect_api", [
         'user_id'       => $getUser['id'],
         'domain'        => check_string($_POST['domain']),
@@ -177,23 +149,10 @@ if (isset($_POST['btnAdd'])) {
             'createdate'    => gettime(),
             'action'        => "Thêm website API vào hệ thống (".check_string($_POST['domain']).")"
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Thêm kết nối API ('.check_string($_POST['domain']).' - '.check_string($_POST['type']).').';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Thêm thành công !")){location.href = "'.BASE_URL('admin/connect-api').'";}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Thêm thất bại !")){window.history.back().location.reload();}</script>');
     }
-}
-
-
-$domain = '';
-if(!empty($_GET['domain'])){
-    $domain = check_string($_GET['domain']);
-}
-$type = '';
-if(!empty($_GET['type'])){
-    $type = check_string($_GET['type']);
 }
 ?>
 <div class="content-wrapper">
@@ -246,16 +205,13 @@ if(!empty($_GET['type'])){
                             <div class="card-body">
                                 <div class="form-group">
                                     <label for="exampleInputEmail1">Domain</label>
-                                    <input class="form-control" type="url" placeholder="https://shopclone6.cmsnt.site/" name="domain" value="<?=$domain;?>" required>
+                                    <input class="form-control" type="url" placeholder="https://shopclone6.cmsnt.site/" name="domain" required>
                                 </div>
                                 <div class="form-group">
                                     <label>Loại API</label> 
                                     <select class="form-control select2bs4" name="type">
-                                        <option value="CMSNT" <?=$type == 'SHOPCLONE6' ? 'selected' : '';?>>
-                                            SHOPCLONE5 & SHOPCLONE6 CMSNT
-                                        </option>
-                                        <option value="SHOPCLONE7" <?=$type == 'SHOPCLONE7' ? 'selected' : '';?>>
-                                            SHOPCLONE7 CMSNT
+                                        <option value="CMSNT">
+                                            CMSNT
                                         </option>
                                         <?php if(checkAddon(11412) == true):?>
                                         <option value="API_1">
@@ -327,16 +283,6 @@ if(!empty($_GET['type'])){
                                                 API 16
                                             </option>
                                         <?php endif?>
-                                        <?php if(checkAddon(11901) == true):?>
-                                            <option value="API_17">
-                                                API 17
-                                            </option>
-                                        <?php endif?>
-                                        <?php if(checkAddon(11925) == true):?>
-                                            <option value="API_23">
-                                                API 23
-                                            </option>
-                                        <?php endif?>
                                     </select>
                                 </div>
                                 <div class="form-group">
@@ -347,7 +293,6 @@ if(!empty($_GET['type'])){
                                     <label for="exampleInputEmail1">Mật khẩu & API & Token</label>
                                     <input class="form-control" type="password" placeholder="Nhập mật khẩu đăng nhập" name="password" required>
                                 </div>
-                                <p>Hướng dẫn sử dụng chức năng tích hợp API tại đây: <a target="_blank" href="https://help.cmsnt.co/danh-muc/huong-dan-tich-hop-nguon-hang-vao-shopclone6/">https://help.cmsnt.co/danh-muc/huong-dan-tich-hop-nguon-hang-vao-shopclone6/</a></p>
                             </div>
                             <div class="card-footer clearfix">
                                 <button name="btnAdd" class="btn btn-info btn-icon-left m-b-10" type="submit"><i
@@ -357,138 +302,6 @@ if(!empty($_GET['type'])){
                     </div>
                 </section>
             </div>
-   
-
-<style>
-    .brand-carousel {
-        width: 100%;
-        overflow: hidden;
-        animation: moveCards 25s linear infinite;
-        white-space: nowrap;
-    }
-        .brand-carousel-container {
-        width: 100%;
-        overflow-x: auto;
-    }
-
-    .brand-carousel {
-        white-space: nowrap;
-        font-size: 0;
-        width: max-content; /* Đảm bảo rằng .brand-carousel có đủ rộng để chứa tất cả các .brand-card trên cùng một hàng */
-    }
-
-    .brand-card {
-        font-size: 16px;
-        display: inline-block;
-        vertical-align: top;
-        margin-right: 20px;
-    }
-
-/* Các phần còn lại giữ nguyên */
-
-    .brand-carousel:hover {
-        animation-play-state: paused;
-    }
-    @keyframes moveCards {
-        0% {
-            transform: translateX(0%);
-        }
-
-        100% {
-            transform: translateX(-100%);
-        }
-    }
-
-    .brand-card {
-        position: relative;
-        display: inline-block;
-        margin: 10px;
-        vertical-align: middle;
-        background-color: #fff;
-        border-radius: 10px;
-        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-        padding: 20px;
-    }
-    .brand-card img {
-        width: 100px;
-    }
-    .connect-button,
-    .website-button {
-        position: absolute;
-        bottom: 10px;
-        left: 50%;
-        transform: translateX(-50%);
-        background-color: #007bff;
-        color: #fff;
-        padding: 5px 10px;
-        border: none;
-        border-radius: 5px;
-        cursor: pointer;
-        opacity: 0;
-        transition: opacity 0.3s ease;
-    }
-
-    .brand-card:hover .connect-button,
-    .brand-card:hover .website-button {
-        opacity: 1;
-    }
-    .website-button {
-        bottom: 40px;
-    }
-    </style>
-    <div class="row justify-content-center py-3">
-        <center>
-        <h5><i class="fa-solid fa-rss"></i> Nhà cung cấp gợi ý</h5>
-        </center>
-        <div class="brand-carousel-container">
-        <div class="brand-carousel animated-carousel">
-
-        </div>
-        </div>
-        <p id="notitcation_suppliers"></p>
-    </div>
-    <script>
-        $(document).ready(function () {
-            $('.brand-carousel').html('');
-            $.ajax({
-                url: 'https://api.cmsnt.co/suppliers.php',
-                type: 'GET',
-                dataType: 'json',
-                success: function (response) {
-                    // Xử lý dữ liệu trả về từ server
-                    if (response && response.suppliers.length > 0) {
-                        var html = '';
-                        $.each(response.suppliers, function (index, brand) {
-                            html += '<div class="brand-card">';
-                            html += '<img src="' + brand.logo + '" alt="Logo">';
-                            html += '<a href="<?=base_url_admin("connect-api-add");?>&domain='+ brand.domain +'&type='+ brand.type +'" class="connect-button btn btn-sm btn-danger">Kết nối</a>';
-                            html += '<a href="' + brand.domain + '?utm_source=ads_cmsnt" target="_blank" class="website-button btn btn-sm btn-primary">Xem</a>';
-                            html += '</div>';
-                        });
-                        $('.brand-carousel').html(html);
-                        $('#notitcation_suppliers').html(response.notication);
-                        calculateAndSetAnimationDuration();
-                    } else {
-                        $('.brand-carousel').html('');
-                    }
-                },
-                error: function () {
-                    $('.brand-carousel').html('');
-                }
-            });
-        });
-        // Function to calculate carousel width and set animation duration
-        function calculateAndSetAnimationDuration() {
-            var carousel = $('.animated-carousel');
-            var carouselWidth = carousel[0].scrollWidth;
-            var cardWidth = carousel.children().first().outerWidth(true); // Including margin
-            var numberOfCards = carouselWidth / cardWidth;
-            var animationDuration = numberOfCards * 2; // Adjust this multiplier as needed
-            carousel.css('animation-duration', animationDuration + 's');
-        }
-    </script>
-    
-
         </div>
     </div>
 </div>

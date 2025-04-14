@@ -1007,7 +1007,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {?>
         }
     }
     ?>
-                    <div class="prod-item col-sm-6 col-md-4 col-xl-3 mb-3"
+                    <div class="prod-item col-sm-6 col-md-4 col-xl-4 mb-3"
                         data-title="Tri Ân Khách Hàng  Via XMDT Live Ads">
                         <div class="product">
                             <div class="product-head">

@@ -92,9 +92,6 @@ if (isset($_POST['SendNoti'])) {
             'createdate'    => gettime(),
             'action'        => "Gửi thông báo đến thành viên."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Gửi thông báo đến thành viên.';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Gửi thành công !")){location.href = "";}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Gửi thất bại !")){window.history.back().location.reload();}</script>');

@@ -79,7 +79,7 @@
                             $id_category = $CMSNT->get_row(" SELECT * FROM `categories` WHERE `id_api` = '$id_catrgory_api' AND `id_connect_api` = '".$website['id']."' ")['id'];
                             $CMSNT->insert('products', [
                                 'user_id'           => $website['user_id'],
-                                'category_id'       => !empty($id_category) ? $id_category : 0,
+                                'category_id'       => $id_category,
                                 'id_api'            => $id_product_api,
                                 'id_connect_api'    => $website['id'],
                                 'name'              => $product_name,

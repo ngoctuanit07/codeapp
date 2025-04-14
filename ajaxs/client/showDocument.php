@@ -5,7 +5,15 @@ require_once(__DIR__."/../../libs/lang.php");
 require_once(__DIR__."/../../libs/helper.php");
 $CMSNT = new DB();
 if($CMSNT->site('sign_view_product') == 0){
-    if (isset($_COOKIE['user_login'])) {
+    if (isset($_COOKIE["token"])) {
+        $getUser = $CMSNT->get_row(" SELECT * FROM `users` WHERE `token` = '".check_string($_COOKIE['token'])."' ");
+        if (!$getUser) {
+            header("location: ".BASE_URL('client/logout'));
+            exit();
+        }
+        $_SESSION['login'] = $getUser['token'];
+    }
+    if (isset($_SESSION['login'])) {
         require_once(__DIR__.'/../../models/is_user.php');
     }
 }else{
@@ -44,7 +52,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {?>
                     <td><i><?=$product['create_date'];?></i></td>
                     <td><i><?=$product['update_date'];?></i></td>
                     <td>
-                        <?php if (isset($_COOKIE['user_login'])):?>
+                        <?php if (isset($_SESSION['login'])):?>
                             <?php if($CMSNT->get_row("SELECT * FROM `orders` WHERE `buyer` = '".$getUser['id']."' AND `document_id` = '".$product['id']."' ")):?>
                                 <a href="<?=base_url('client/order/'.$CMSNT->get_row("SELECT * FROM `orders` WHERE `buyer` = '".$getUser['id']."' AND `document_id` = '".$product['id']."' ")['trans_id']);?>" class="btn btn-danger btn-sm"><i class="fa-solid fa-eye mr-1"></i><?=__('XEM');?></a>
                             <?php else:?>

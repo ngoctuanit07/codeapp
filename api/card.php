@@ -9,7 +9,7 @@ $User = new users();
 $CMSNT = new DB();
 $Mobile_Detect = new Mobile_Detect();
 
-if ($CMSNT->site('status') != 1 && isSecureCookie('admin_login') != true) {
+if ($CMSNT->site('status') != 1 && !isset($_SESSION['admin_login'])) {
     die('status_website_off');
 }
 if ($CMSNT->site('status_napthe') != 1) {
@@ -48,7 +48,7 @@ if(isset($_GET['request_id']) && isset($_GET['callback_sign'])){
             'price'         => $price,
             'update_date'    => gettime()
         ), " `id` = '".$row['id']."' ");
-        $User->AddCredits($row['user_id'], $price, "Nạp thẻ cào Seri ".$row['serial']." - Pin ".$row['pin']." ", 'TOPUP_CARD_'.$row['pin']);
+        $User->AddCredits($row['user_id'], $price, "Nạp thẻ cào Seri ".$row['serial']." - Pin ".$row['pin']." ");
 
         /** SEND NOTI CHO ADMIN */
         $my_text = $CMSNT->site('naptien_notification');

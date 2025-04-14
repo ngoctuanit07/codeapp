@@ -60,7 +60,7 @@ if($status == 'completed'){
         }
 
 
-        $User->AddCredits($row['user_id'], $thucnhan, "Crypto Recharge #".$row['trans_id'], 'TOPUP_CRYPTO_'.$row['trans_id']);
+        $User->AddCredits($row['user_id'], $thucnhan, "Crypto Recharge #".$row['trans_id']);
 
         /** SEND NOTI CHO ADMIN */
         $my_text = $CMSNT->site('naptien_notification');

@@ -134,7 +134,6 @@ require_once(__DIR__.'/nav.php');
                                             <th>Attempts</th>
                                             <th>Banned</th>
                                             <th>Reason</th>
-                                            <th>Time</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
@@ -146,7 +145,6 @@ require_once(__DIR__.'/nav.php');
                                             <td><?=$row['attempts'];?></td>
                                             <td><?=display_banned($row['banned']);?></td>
                                             <td><?=$row['reason'];?></td>
-                                            <td><?=$row['create_gettime'];?></td>
                                             <td>
                                                 <button style="color:white;"
                                                     onclick="RemoveRow('<?=$row['id'];?>', '<?=$row['ip'];?>')"

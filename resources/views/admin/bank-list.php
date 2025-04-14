@@ -64,11 +64,8 @@ if (isset($_POST['ThemNganHang'])) {
             'ip'            => myip(),
             'device'        => $Mobile_Detect->getUserAgent(),
             'createdate'    => gettime(),
-            'action'        => "Thêm ngân hàng (".$_POST['short_name']." - ".$_POST['accountNumber'].") vào hệ thống."
+            'action'        => "Thêm ngân hàng (".$_POST['short_name']." - ".$_POST['account_number'].") vào hệ thống."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Thêm ngân hàng ('.check_string($_POST['short_name']).' - '.check_string($_POST['accountNumber']).') vào hệ thống.';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Thêm thành công !")){window.history.back().location.reload();}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Thêm thất bại !")){window.history.back().location.reload();}</script>');
@@ -104,14 +101,6 @@ if (isset($_POST['SaveSettings'])) {
     </div>
     <div class="content">
         <div class="container-fluid">
-            <?php if(time() - $CMSNT->site('check_time_cron_bank') >= 120):?>
-            <div class="alert alert-warning alert-dismissible">
-                <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                <h5><i class="icon fas fa-exclamation-triangle"></i> Alert!</h5>
-                Vui lòng thực hiện <b>CRON JOB</b> liên kết: <a href=" <?=base_url('cron/bank.php');?>"
-                    target="_blank"><?=base_url('cron/bank.php');?></a> theo hướng dẫn tại <a href="https://help.cmsnt.co/huong-dan/huong-dan-xu-ly-khi-website-bao-loi-cron/" target="_blank">đây</a>.
-            </div>
-            <?php endif?>
             <div class="row">
                 <section class="col-lg-7 connectedSortable">
                     <div class="card card-primary card-outline">
@@ -286,8 +275,8 @@ if (isset($_POST['SaveSettings'])) {
                                 <div class="form-group">
                                     <label for="exampleInputEmail1">Nội dung nạp server2</label>
                                     <input type="text" class="form-control" name="prefix_autobank"
-                                        value="<?=$CMSNT->site('prefix_autobank');?>" placeholder="VD: naptien"
-                                        required>
+                                        value="<?=$CMSNT->site('prefix_autobank');?>"
+                                        placeholder="VD: naptien" required>
                                     <i>Chỉ áp dụng cho server 2</i>
                                 </div>
                                 <p>-------- CÓ THỂ DÙNG 1 LÚC 2 SERVER ĐỂ ĐA DẠNG CÁCH NẠP -----------</p>
@@ -615,3 +604,4 @@ function RemoveRow(id) {
     })
 }
 </script>
+

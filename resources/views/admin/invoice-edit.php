@@ -52,9 +52,6 @@ if (isset($_POST['SaveInvoice'])) {
             'createdate'    => gettime(),
             'action'        => "Chỉnh sửa hoá đơn (".$row['trans_id'].")."
         ]);
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Cập nhật hoá đơn ('.$row['trans_id'].' ID '.$row['id'].').';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Lưu thành công!")){window.history.back().location.reload();}</script>');
     } else {
         die('<script type="text/javascript">if(!alert("Lưu thất bại!")){window.history.back().location.reload();}</script>');

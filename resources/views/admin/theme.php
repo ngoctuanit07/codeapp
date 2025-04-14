@@ -160,9 +160,6 @@ require_once(__DIR__.'/nav.php');
                 ], " `name` = 'bg_card' ");
             }
         }
-        /** SEND NOTI CHO ADMIN */
-        $my_text = '['.$getUser['username'].'] Cập nhật giao diện website.';
-        sendMessAdmin($my_text);
         die('<script type="text/javascript">if(!alert("Lưu thành công !")){window.history.back().location.reload();}</script>');
     } ?>
     <!-- Main content -->
