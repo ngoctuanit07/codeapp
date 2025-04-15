@@ -493,6 +493,15 @@
                             </a>
                         </li>
                         <li class="nav-item">
+                            <a href="<?=BASE_URL('admin/withdraw-codes');?>"
+                                class="nav-link <?=active_sidebar(['withdraw-codes', 'withdraw-codes-edit', 'withdraw-codes-add']);?>">
+                                <i class="nav-icon fas fa-dollar"></i>
+                                <p>
+                                  Mã code
+                                </p>
+                            </a>
+                        </li>
+                        <li class="nav-item">
                             <a href="<?=BASE_URL('admin/domain-list');?>"
                                 class="nav-link <?=active_sidebar(['domain-list']);?>">
                                 <i class="nav-icon fas fa-list"></i>
