@@ -48,6 +48,7 @@ require_once(__DIR__.'/nav.php');
                                     <th>#</th>
                                     <th>Mã giao dịch</th>
                                     <th>Mã tiền</th>
+                                    <th>Lý do</th>
                                     <th>Tài khoản</th>
                                     <th>Ngân hàng</th>
                                     <th>Số tài khoản</th>
@@ -70,6 +71,7 @@ require_once(__DIR__.'/nav.php');
                                     <td><?=$i++;?></td>
                                     <td><?=$row['trans_id'];?></td>
                                     <td><b><?=$row['code'];?></b></td>
+                                    <td><b><?=$row['reason'];?></b></td>
                                     <td><span class="badge badge-dark"><?=$row['username'] ?? 'Không xác định';?></span></td>
                                     <td><?=$row['bank_name'];?></td>
                                     <td><?=$row['account_number'];?></td>

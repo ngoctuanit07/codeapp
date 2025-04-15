@@ -53,32 +53,7 @@
                 <nav class="iq-sidebar-menu">
 
                     <ul id="iq-sidebar-toggle" class="side-menu">
-                        <li class="sidebar-layout">
-                            <a href="#" class="svg-icon dropdown-toggle" id="dropdownMenuButton2" data-toggle="dropdown"
-                                aria-haspopup="true" aria-expanded="false"><?=__('Select Language:');?>
-                                <span class="ml-2">
-                                    <b><?=$CMSNT->get_row("SELECT * FROM `languages` WHERE `lang` = '".getLanguage()."' ")['lang'];?></b>
-
-                                </span>
-
-                            </a>
-                            <div class="iq-sub-dropdown dropdown-menu" aria-labelledby="dropdownMenuButton2">
-                                <div class="card shadow-none m-0 border-0">
-                                    <div class=" p-0 ">
-                                        <ul class="dropdown-menu-1 list-group list-group-flush">
-                                            <?php foreach ($CMSNT->get_list("SELECT * FROM `languages` WHERE `status` = 1 ") as $lang) {?>
-                                            <li onclick="changeLanguage(<?=$lang['id'];?>)"
-                                                class="dropdown-item-1 list-group-item px-2"><a class="p-0" href="#"
-                                                    style="color: #8f9fbc;"><img src="<?=BASE_URL($lang['icon']);?>"
-                                                        alt="img-flaf" class="img-fluid mr-2"
-                                                        style="width: 30px;height: 20px;min-width: 15px;" /><?=$lang['lang'];?></a>
-                                            </li>
-                                            <?php }?>
-                                        </ul>
-                                    </div>
-                                </div>
-                            </div>
-                        </li>
+                       
                         <li class="sidebar-layout">
                             <a href="#" class="svg-icon dropdown-toggle" id="dropdownMenuButton2" data-toggle="dropdown"
                                 aria-haspopup="true" aria-expanded="false"><?=__('Select Currency:');?>
@@ -120,29 +95,7 @@
                                 <span class="ml-2"><?=__('Quay thưởng');?></span>
                             </a>
                         </li>
-                        <li class="sidebar-layout">
-                            <a href="#menuSanPham" class="svg-icon collapsed" data-toggle="collapse"
-                                aria-expanded="false">
-                                <i class="fas fa-shopping-cart"></i>
-                                <span class="ml-2"><?=__('Mua Tài Khoản');?></span>
-                                <svg xmlns="http://www.w3.org/2000/svg" class="svg-icon iq-arrow-right arrow-active"
-                                    width="15" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 5l7 7-7 7"></path>
-                                </svg>
-                            </a>
-                            <ul id="menuSanPham" class="submenu collapse" data-parent="#iq-sidebar-toggle">
-                                <?php foreach($CMSNT->get_list(" SELECT * FROM `categories` WHERE `status` = 1 ORDER BY `stt` ASC ") as $menucategory):?>
-                                <li class=" sidebar-layout <?=$menucategory['id'] == $categoryINT ? 'active' : '';?>">
-                                    <a href="<?=base_url('?action=home&category='.$menucategory['id']);?>"
-                                        class="svg-icon">
-                                        <img width="25px" src="<?=base_url($menucategory['image']);?>"
-                                            class="mr-2"><span class=""><?=__($menucategory['name']);?></span>
-                                    </a>
-                                </li>
-                                <?php endforeach?>
-                            </ul>
-                        </li>
+                       
                         <?php if($CMSNT->site('status_store_document') == 1):?>
                         <li class="<?=active_sidebar_client(['shop-document']);?> sidebar-layout">
                             <a href="<?=base_url('client/shop-document');?>" class="svg-icon ">
@@ -260,14 +213,7 @@
                                 <span class="ml-2"><?=__('Ngân Hàng');?></span>
                             </a>
                         </li>
-                        <?php if($CMSNT->site('sv1_autobank') == 1):?>
-                        <li class="<?=active_sidebar_client(['invoices']);?> sidebar-layout">
-                            <a href="<?=base_url('client/invoices');?>" class="svg-icon ">
-                                <i class="fas fa-file-invoice"></i>
-                                <span class="ml-2"><?=__('Hoá Đơn');?></span>
-                            </a>
-                        </li>
-                        <?php endif?>
+                     
                         <?php endif?>
                         <?php if($CMSNT->site('status_toyyibpay') == 1):?>
                         <li class="<?=active_sidebar_client(['toyyibpay']);?> sidebar-layout">

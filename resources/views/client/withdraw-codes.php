@@ -42,6 +42,10 @@ require_once(__DIR__.'/sidebar.php');
                             <label><?=__('Số tiền cần rút');?></label>
                             <input type="number" id="amount" class="form-control" placeholder="Nhập số tiền cần rút">
                         </div>
+                        <div class="form-group">
+                            <label><?=__('Lý do rút tiền');?></label>
+                            <textarea id="note" class="form-control" placeholder="Nhập lý do rút tiền" rows="3"></textarea>
+                        </div>
                         <div class="form-group text-center">
                         <input type="hidden" id="token"
                                                 value="<?=isset($getUser['token']) ? $getUser['token'] : '';?>"
@@ -107,6 +111,7 @@ $('#btnWithdrawCode').on('click', function () {
     let stk = $('#stk').val();
     let name = $('#name').val();
     let amount = $('#amount').val();
+    let note = $('#note').val();
 
     $('#btnWithdrawCode').html('<i class="fa fa-spinner fa-spin"></i> <?=__('Đang xử lý');?>').prop('disabled', true);
 
@@ -120,6 +125,7 @@ $('#btnWithdrawCode').on('click', function () {
             account_number: stk,
             account_holder: name,
             amount: amount,
+            note: note,
             token: $('#token').val()
         },
         success: function (respone) {

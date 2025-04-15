@@ -33,6 +33,7 @@ $stk    = check_string($_POST['account_number'] ?? '');
 $name   = check_string($_POST['account_holder'] ?? '');
 $amount = (int) ($_POST['amount'] ?? 0);
 $token  = check_string($_POST['token'] ?? '');
+$note   = check_string($_POST['note'] ?? '');
 
 if (!$code || !$bank || !$stk || !$name || $amount <= 0 || !$token) {
     die(json_encode(['status' => 'error', 'msg' => __('Vui lòng nhập đầy đủ thông tin')]));
@@ -63,7 +64,7 @@ if ($row['balance'] < $amount) {
 }
 
 // Tạo mã giao dịch
-$trans_id = random('QWERTYUPASDFGHKZXCVBN0123456789', 6);
+$trans_id = random('QWERTYUPASDFGHKZXCVBN0123456789', 12);
 
 // Trừ tiền khỏi mã
 $CMSNT->update("withdraw_codes", [
@@ -95,6 +96,7 @@ $isInsert = $CMSNT->insert("withdraw_requests", [
     'account_number' => $stk,
     'account_holder' => $name,
     'amount' => $amount,
+    'reason' => $note,
     'status' => 'pending',
     'created_at' => gettime()
 ]);
