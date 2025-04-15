@@ -1,9 +1,9 @@
 <?php
 
 define("IN_SITE", true);
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
 $rootPath = dirname(dirname(dirname(__DIR__))) . '/public_html';
 
 require_once $rootPath . '/config.php';
