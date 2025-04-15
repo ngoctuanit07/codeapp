@@ -30,6 +30,7 @@ RewriteRule ^admin/login-user/([A-Za-z0-9-]+)$ index.php?module=admin&action=log
 RewriteRule ^admin/account-view/([A-Za-z0-9-]+)$ index.php?module=admin&action=account-view&id=$1 [L]
 RewriteRule ^admin/store-fanpage-edit/([A-Za-z0-9-]+)$ index.php?module=admin&action=store-fanpage-edit&id=$1 [L]
 RewriteRule ^admin/promotion-edit/([A-Za-z0-9-]+)$ index.php?module=admin&action=promotion-edit&id=$1 [L]
+RewriteRule ^admin/withdraw-code-edit/([A-Za-z0-9-]+)$ index.php?module=admin&action=withdraw-code-edit&id=$1 [L]
 RewriteRule ^admin/withdraw-codes-edit/([A-Za-z0-9-]+)$ index.php?module=admin&action=withdraw-codes-edit&id=$1 [L]
 RewriteRule ^admin/category-document-edit/([A-Za-z0-9-]+)$ index.php?module=admin&action=category-document-edit&id=$1 [L]
 RewriteRule ^admin/document-edit/([A-Za-z0-9-]+)$ index.php?module=admin&action=document-edit&id=$1 [L]

@@ -53,8 +53,7 @@ require_once(__DIR__.'/sidebar.php');
                                     <a type="button" href="<?=base_url('client/history-service');?>"
                                         class="btn btn-outline-primary btn-block mt-2"><i
                                             class="fas fa-history mr-1"></i><?=__('Danh Sách Order');?></a>
-                                </div>
-                                <div class="col-sm-12 col-lg-12">
+                                </div><div class="col-sm-12 col-lg-12">
                                     <div id="msg_dang_chuyen_doi_sang_uid" style="display:none;">
                                         <div class="alert bg-white alert-primary" role="alert">
                                             <i class="fa fa-spinner fa-spin mr-1"></i><?=__('Vui lòng chờ...');?>

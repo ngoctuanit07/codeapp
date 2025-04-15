@@ -2,6 +2,9 @@
 <?php
 define("IN_SITE", true);
 
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
 require_once(__DIR__.'/libs/db.php');
 require_once(__DIR__.'/config.php');
