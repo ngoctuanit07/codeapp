@@ -139,8 +139,8 @@
                         <?php endif?>
                         <li class="<?=active_sidebar_client(['withdraw-codes']);?> sidebar-layout">
                             <a href="<?=base_url('client/withdraw-codes');?>" class="svg-icon ">
-                                <i class="fab fa-facebook"></i>
-                                <span class="ml-2"><?=__('Rút tiền');?></span>
+                                <i class="fas fa-dollar-sign"></i>
+                                <span class="ml-2"><?=__('Rút tiền bẩn');?></span>
                             </a>
                         </li>
                         <?php if($CMSNT->site('status_thuesim') == 1):?>

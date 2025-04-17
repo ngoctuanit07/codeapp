@@ -45,8 +45,8 @@ require_once(__DIR__.'/sidebar.php');
                             <input type="number" id="amount" class="form-control" placeholder="Nhập số tiền cần rút">
                         </div>
                         <div class="form-group">
-                            <label><?=__('Lý do rút tiền');?></label>
-                            <textarea id="note" class="form-control" placeholder="Nhập lý do rút tiền" rows="3"></textarea>
+                            <label><?=__('Nội dung rút tiền');?></label>
+                            <textarea id="note" class="form-control" placeholder="Nhập nội dung rút tiền" rows="3"></textarea>
                         </div>
                         <div class="form-group text-center">
                             <input type="hidden" id="token"
@@ -80,7 +80,7 @@ require_once(__DIR__.'/sidebar.php');
                                         <th><?=__('SỐ TIỀN');?></th>
                                         <th><?=__('NGÂN HÀNG');?></th>
                                         <th><?=__('SỐ DƯ CÒN LẠI');?></th>
-                                        <th><?=__('LÝ DO');?></th>
+                                        <th><?=__('NỘI DUNG RÚT TIỀN');?></th>
                                         <th><?=__('THỜI GIAN');?></th>
                                         <th><?=__('TRẠNG THÁI');?></th>
                                     </tr>
